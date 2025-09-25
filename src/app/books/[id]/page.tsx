@@ -1,11 +1,17 @@
+"use client";
+
 import Image from "next/image";
 import { books } from "@/lib/mock-data";
 import { placeholderImages } from "@/lib/placeholder-images";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Book, Calendar, Languages, Star } from "lucide-react";
+import { Book, Calendar, Languages, Star, Heart, BookOpen } from "lucide-react";
 import { notFound } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useNotifications } from "@/context/NotificationContext";
+import { useAuth } from "@/hooks/useAuth";
+import { BookmarkButton } from "@/components/bookmarks/BookmarkButton";
+import { useState } from "react";
 
 type BookDetailPageProps = {
   params: { id: string };
@@ -13,10 +19,32 @@ type BookDetailPageProps = {
 
 export default function BookDetailPage({ params }: BookDetailPageProps) {
   const book = books.find((b) => b.id === params.id);
+  const { sendReservationNotification } = useNotifications();
+  const { user } = useAuth();
+  const [isReserving, setIsReserving] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
 
   if (!book) {
     notFound();
   }
+
+  const handleReservation = async () => {
+    if (!user) {
+      // Redirect to login
+      return;
+    }
+
+    setIsReserving(true);
+    // Simulate API call
+    setTimeout(() => {
+      sendReservationNotification(book.title, 'confirmed');
+      setIsReserving(false);
+    }, 1500);
+  };
+
+  const toggleWishlist = () => {
+    setIsWishlisted(!isWishlisted);
+  };
 
   const coverImage = placeholderImages.find(p => p.id === book.coverImageId) || placeholderImages[0];
 
@@ -81,16 +109,170 @@ export default function BookDetailPage({ params }: BookDetailPageProps) {
             </div>
           </div>
 
-          <div className="pt-4">
-            <Button size="lg" className="w-full md:w-auto" disabled={book.availabilityStatus !== 'available'}>
-              Reserve Book
-            </Button>
+          <div className="pt-4 space-y-3">
+            <div className="flex gap-3">
+              <Button
+                size="lg"
+                className="flex-1 md:flex-initial"
+                disabled={book.availabilityStatus !== 'available' || !user || isReserving}
+                onClick={handleReservation}
+              >
+                {isReserving ? (
+                  <>
+                    <BookOpen className="mr-2 h-4 w-4 animate-pulse" />
+                    Reserving...
+                  </>
+                ) : (
+                  <>
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    Reserve Book
+                  </>
+                )}
+              </Button>
+              <BookmarkButton
+                bookId={book.id}
+                bookTitle={book.title}
+                variant="outline"
+                size="lg"
+                showText
+              />
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={toggleWishlist}
+                className={cn(
+                  "px-4",
+                  isWishlisted && "bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
+                )}
+              >
+                <Heart className={cn("h-4 w-4", isWishlisted && "fill-current")} />
+              </Button>
+            </div>
+
+            {!user && (
+              <p className="text-sm text-muted-foreground">
+                Please <a href="/login" className="text-primary hover:underline">sign in</a> to reserve books.
+              </p>
+            )}
+
             {book.availabilityStatus === 'reserved' && (
-              <p className="text-sm text-warning-foreground mt-2">This book is currently reserved. You can join the waiting queue.</p>
+              <p className="text-sm text-warning-foreground">
+                This book is currently reserved. You can join the waiting queue.
+              </p>
             )}
             {book.availabilityStatus === 'checked_out' && (
-              <p className="text-sm text-destructive-foreground mt-2">This book is currently checked out and unavailable for reservation.</p>
+              <p className="text-sm text-destructive-foreground">
+                This book is currently checked out and unavailable for reservation.
+              </p>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* Reviews Section */}
+      <div className="container mx-auto px-4 py-8 md:px-6">
+        <div className="space-y-8">
+          <div>
+            <h2 className="text-2xl font-bold mb-6">Reviews & Ratings</h2>
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="md:col-span-1">
+                <div className="bg-muted rounded-lg p-6 text-center">
+                  <div className="text-3xl font-bold mb-2">4.2</div>
+                  <div className="flex items-center justify-center mb-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className={`h-5 w-5 ${i < 4 ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
+                    ))}
+                  </div>
+                  <p className="text-sm text-muted-foreground">Based on 123 reviews</p>
+                  <div className="mt-4 space-y-2">
+                    {[5, 4, 3, 2, 1].map((stars) => (
+                      <div key={stars} className="flex items-center gap-2 text-sm">
+                        <span className="w-3">{stars}</span>
+                        <div className="flex-1 bg-gray-200 rounded-full h-2">
+                          <div className="bg-yellow-400 h-2 rounded-full" style={{ width: `${stars * 20 - 20}%` }}></div>
+                        </div>
+                        <span className="w-8 text-right">{Math.floor(Math.random() * 30 + 10)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="md:col-span-2 space-y-6">
+                {/* Sample Reviews */}
+                {[
+                  {
+                    id: 1,
+                    userName: "Sarah Johnson",
+                    rating: 5,
+                    date: "2 days ago",
+                    review: "Absolutely loved this book! The characters were well-developed and the plot kept me engaged from start to finish. Highly recommend!"
+                  },
+                  {
+                    id: 2,
+                    userName: "Mike Chen",
+                    rating: 4,
+                    date: "1 week ago",
+                    review: "Great read overall. Some parts were a bit slow, but the ending was worth it. The author's writing style is captivating."
+                  },
+                  {
+                    id: 3,
+                    userName: "Emma Wilson",
+                    rating: 5,
+                    date: "2 weeks ago",
+                    review: "One of my favorite books this year. The themes are relevant and thought-provoking. A must-read!"
+                  }
+                ].map((review) => (
+                  <div key={review.id} className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-semibold">{review.userName.charAt(0)}</span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{review.userName}</p>
+                          <p className="text-xs text-muted-foreground">{review.date}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className={`h-4 w-4 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-sm leading-relaxed">{review.review}</p>
+                  </div>
+                ))}
+
+                <Button variant="outline" className="w-full">
+                  View All Reviews
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Recommendations Section */}
+          <div>
+            <h2 className="text-2xl font-bold mb-6">You Might Also Like</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {books.filter(b => b.id !== book.id && b.category === book.category).slice(0, 6).map((recommendedBook) => {
+                const coverImage = placeholderImages.find(p => p.id === recommendedBook.coverImageId) || placeholderImages[0];
+                return (
+                  <div key={recommendedBook.id} className="group cursor-pointer">
+                    <div className="aspect-[3/4] relative mb-2 overflow-hidden rounded-lg">
+                      <Image
+                        src={coverImage.imageUrl}
+                        alt={`Cover of ${recommendedBook.title}`}
+                        fill
+                        className="object-cover transition-transform group-hover:scale-105"
+                      />
+                    </div>
+                    <h3 className="font-medium text-sm line-clamp-2 mb-1">{recommendedBook.title}</h3>
+                    <p className="text-xs text-muted-foreground">{recommendedBook.author}</p>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>

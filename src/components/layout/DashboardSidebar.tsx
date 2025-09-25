@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Book, FileText, Home, LayoutDashboard, Settings, Users } from "lucide-react";
+import { Book, FileText, Home, LayoutDashboard, Settings, Users, Bookmark } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -21,7 +21,7 @@ const commonNavItems = [
 ];
 
 const userNavItems = [
-  // User specific items can be added here
+  { href: "/dashboard/user/bookmarks", label: "Bookmarks", icon: Bookmark },
 ];
 
 const adminNavItems = [

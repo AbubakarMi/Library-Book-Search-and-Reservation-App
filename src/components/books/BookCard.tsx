@@ -6,6 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
+import { BookmarkButton } from "@/components/bookmarks/BookmarkButton";
 
 interface BookCardProps {
   book: Book;
@@ -32,6 +33,14 @@ export function BookCard({ book }: BookCardProps) {
           <Badge className={cn("absolute top-2 right-2 z-10 text-white", getStatusBadgeVariant(book.availabilityStatus))}>
             {book.availabilityStatus.replace("_", " ")}
           </Badge>
+          <div className="absolute top-2 left-2 z-10">
+            <BookmarkButton
+              bookId={book.id}
+              bookTitle={book.title}
+              size="sm"
+              className="bg-white/90 hover:bg-white shadow-sm"
+            />
+          </div>
           <Image
             src={coverImage.imageUrl}
             alt={`Cover of ${book.title}`}

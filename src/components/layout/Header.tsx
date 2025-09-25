@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Book, LayoutDashboard, LogOut } from "lucide-react";
+import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function Header() {
   const { user, logout } = useAuth();
@@ -35,8 +37,11 @@ export default function Header() {
         </div>
 
         <div className="flex flex-1 items-center justify-end space-x-2">
+          <ThemeToggle />
           {user ? (
-            <DropdownMenu>
+            <>
+              <NotificationDropdown />
+              <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-9 w-9">
@@ -68,6 +73,7 @@ export default function Header() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </>
           ) : (
             <nav className="flex items-center space-x-2">
               <Button variant="ghost" asChild>
