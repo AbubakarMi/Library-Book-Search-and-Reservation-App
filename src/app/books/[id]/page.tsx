@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { books } from "@/lib/mock-data";
-import { placeholderImages } from "@/lib/lib/placeholder-images";
+import { placeholderImages } from "@/lib/placeholder-images";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Book, Calendar, Languages, Star } from "lucide-react";
