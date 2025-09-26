@@ -179,7 +179,7 @@ export default function UserDashboardPage() {
           </Card>
 
           {/* Quick Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card className="border-border/50">
               <CardContent className="p-4 text-center">
                 <div className="w-10 h-10 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-2">
@@ -222,7 +222,7 @@ export default function UserDashboardPage() {
           </div>
 
           {/* Library Management Tabs */}
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 lg:grid-cols-2">
             <Card className="border-border/50">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
@@ -280,7 +280,7 @@ export default function UserDashboardPage() {
               </p>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {recommendedBooks.map((book) => {
                   const coverImage = placeholderImages.find(p => p.id === book.coverImageId) || placeholderImages[0];
                   return (

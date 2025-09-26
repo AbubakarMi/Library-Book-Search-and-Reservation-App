@@ -170,7 +170,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Today's Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border-border/50 hover:shadow-sm transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -245,7 +245,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Books</CardTitle>
@@ -302,7 +302,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Charts Grid */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         {/* Category Distribution */}
         <Card>
           <CardHeader>
@@ -428,7 +428,7 @@ export default function AdminDashboardPage() {
           </Card>
 
           {/* Charts Grid - Existing charts */}
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 lg:grid-cols-2">
             {/* Category Distribution */}
             <Card className="border-border/50">
               <CardHeader>

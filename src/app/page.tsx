@@ -224,13 +224,13 @@ function SearchResults() {
               </div>
 
               <div className="relative">
-                <p className="mx-auto max-w-[1000px] text-xl md:text-2xl lg:text-4xl leading-ultra-relaxed font-body text-gray-700 dark:text-gray-200 transform hover:scale-105 transition-all duration-500 text-shadow">
+                <div className="mx-auto max-w-[1000px] text-xl md:text-2xl lg:text-4xl leading-ultra-relaxed font-body text-gray-700 dark:text-gray-200 transform hover:scale-105 transition-all duration-500 text-shadow">
                   <span className="font-light">
                     Transform your reading experience with our
                   </span>
                   <span className="relative font-bold text-gradient-primary mx-2">
                     intelligent library system
-                    <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-blue-600 animate-pulse rounded-full"></div>
+                    <span className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-blue-600 animate-pulse rounded-full"></span>
                   </span>
                   <span className="font-light">.</span>
                   <br className="block" />
@@ -243,7 +243,7 @@ function SearchResults() {
                       <Sparkles className="inline-block w-7 h-7 ml-3 text-purple-500 animate-spin-slow" />
                     </span>
                   </span>
-                </p>
+                </div>
               </div>
             </div>
 

@@ -2,67 +2,59 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'dark' | 'light' | 'system';
+type Theme = 'dark' | 'light';
 
 interface ThemeContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  actualTheme: 'dark' | 'light';
+  toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('system');
-  const [actualTheme, setActualTheme] = useState<'dark' | 'light'>('light');
+  const [theme, setThemeState] = useState<Theme>('light');
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // Get theme from localStorage on mount
-    const storedTheme = localStorage.getItem('theme') as Theme;
-    if (storedTheme) {
-      setTheme(storedTheme);
-    }
-  }, []);
-
-  useEffect(() => {
-    const root = window.document.documentElement;
-
-    const updateActualTheme = () => {
-      let newActualTheme: 'dark' | 'light';
-
-      if (theme === 'system') {
-        newActualTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    // Only run on client side and only once
+    if (typeof window !== "undefined" && !isInitialized) {
+      const savedTheme = localStorage.getItem('library-theme') as Theme;
+      if (savedTheme && (savedTheme === 'dark' || savedTheme === 'light')) {
+        setThemeState(savedTheme);
       } else {
-        newActualTheme = theme;
+        // Set default theme to light (no system preference detection)
+        setThemeState('light');
+        localStorage.setItem('library-theme', 'light');
       }
+      setIsInitialized(true);
+    }
+  }, [isInitialized]);
 
-      setActualTheme(newActualTheme);
+  useEffect(() => {
+    if (isInitialized && typeof window !== "undefined") {
+      const root = window.document.documentElement;
 
       // Remove existing theme classes
       root.classList.remove('light', 'dark');
       // Add new theme class
-      root.classList.add(newActualTheme);
+      root.classList.add(theme);
 
       // Store theme in localStorage
-      localStorage.setItem('theme', theme);
-    };
+      localStorage.setItem('library-theme', theme);
+    }
+  }, [theme, isInitialized]);
 
-    updateActualTheme();
+  const setTheme = (newTheme: Theme) => {
+    setThemeState(newTheme);
+  };
 
-    // Listen for system theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = () => {
-      if (theme === 'system') {
-        updateActualTheme();
-      }
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [theme]);
+  const toggleTheme = () => {
+    setThemeState(theme === 'dark' ? 'light' : 'dark');
+  };
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, actualTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

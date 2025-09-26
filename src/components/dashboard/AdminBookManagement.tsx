@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { MoreHorizontal, PlusCircle, Upload, X, Image as ImageIcon } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Upload, X, Image as ImageIcon, Save } from 'lucide-react';
 import Image from 'next/image';
 
 import { books as initialBooks, bookCategories } from '@/lib/mock-data';
@@ -166,7 +166,7 @@ export default function AdminBookManagement() {
                 <PlusCircle className="mr-2 h-4 w-4" /> Add Book
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingBook ? 'Edit Book' : 'Add New Book'}</DialogTitle>
                 <DialogDescription>
@@ -174,126 +174,206 @@ export default function AdminBookManagement() {
                 </DialogDescription>
               </DialogHeader>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   {/* Image Upload Section */}
-                  <div className="space-y-2">
-                    <FormLabel>Book Cover Image</FormLabel>
-                    <div className="flex items-center gap-4">
-                      {uploadedImage ? (
-                        <div className="relative">
-                          <div className="w-24 h-32 relative rounded-md overflow-hidden border">
-                            <Image
-                              src={uploadedImage}
-                              alt="Book cover preview"
-                              fill
-                              className="object-cover"
-                            />
+                  <div className="space-y-3">
+                    <FormLabel className="text-base font-semibold">Book Cover Image</FormLabel>
+                    <div className="border border-dashed border-muted-foreground/25 rounded-lg p-6">
+                      <div className="flex flex-col sm:flex-row items-center gap-6">
+                        {uploadedImage ? (
+                          <div className="relative flex-shrink-0">
+                            <div className="w-32 h-44 relative rounded-lg overflow-hidden border shadow-md">
+                              <Image
+                                src={uploadedImage}
+                                alt="Book cover preview"
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="absolute -top-2 -right-2 h-7 w-7 rounded-full p-0 shadow-md"
+                              onClick={removeImage}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
                           </div>
+                        ) : (
+                          <div className="w-32 h-44 border-2 border-dashed border-muted-foreground/25 rounded-lg flex flex-col items-center justify-center bg-muted/20 flex-shrink-0">
+                            <ImageIcon className="h-12 w-12 text-muted-foreground/40 mb-2" />
+                            <p className="text-xs text-muted-foreground text-center">No image</p>
+                          </div>
+                        )}
+                        <div className="flex-1 space-y-3 w-full">
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                            id="cover-upload"
+                          />
                           <Button
                             type="button"
-                            variant="destructive"
-                            size="sm"
-                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
-                            onClick={removeImage}
+                            variant="outline"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="w-full h-12"
                           >
-                            <X className="h-3 w-3" />
+                            <Upload className="h-5 w-5 mr-3" />
+                            {uploadedImage ? 'Change Cover Image' : 'Upload Cover Image'}
                           </Button>
+                          <div className="text-center space-y-1">
+                            <p className="text-sm text-muted-foreground">
+                              Recommended: 300×400px, JPG or PNG
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Maximum file size: 5MB
+                            </p>
+                          </div>
                         </div>
-                      ) : (
-                        <div className="w-24 h-32 border-2 border-dashed border-muted-foreground/25 rounded-md flex items-center justify-center">
-                          <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
-                        </div>
-                      )}
-                      <div className="flex-1">
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="hidden"
-                          id="cover-upload"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => fileInputRef.current?.click()}
-                          className="w-full"
-                        >
-                          <Upload className="h-4 w-4 mr-2" />
-                          {uploadedImage ? 'Change Image' : 'Upload Cover Image'}
-                        </Button>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Recommended: 300x400px, max 5MB
-                        </p>
                       </div>
                     </div>
                   </div>
 
-                  <FormField control={form.control} name="title" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Title</FormLabel>
-                      <FormControl><Input {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="author" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Author</FormLabel>
-                      <FormControl><Input {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="category" render={({ field }) => (
-                     <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  {/* Basic Information */}
+                  <div className="space-y-4">
+                    <h3 className="text-base font-semibold border-b pb-2">Basic Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField control={form.control} name="title" render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                          <FormLabel>Book Title</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Enter the complete book title"
+                              className="h-11"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="author" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Author</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Author's full name"
+                              className="h-11"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="publicationYear" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Publication Year</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              placeholder="e.g., 2023"
+                              className="h-11"
+                              min="1000"
+                              max={new Date().getFullYear()}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                    </div>
+                  </div>
+                  {/* Additional Details */}
+                  <div className="space-y-4">
+                    <h3 className="text-base font-semibold border-b pb-2">Additional Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField control={form.control} name="category" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Category</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
-                            <SelectTrigger>
+                              <SelectTrigger className="h-11">
                                 <SelectValue placeholder="Select a category" />
-                            </SelectTrigger>
+                              </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                {bookCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                              {bookCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
                             </SelectContent>
-                        </Select>
-                        <FormMessage />
-                    </FormItem>
-                  )} />
-                   <FormField control={form.control} name="publicationYear" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Publication Year</FormLabel>
-                      <FormControl><Input type="number" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                   <FormField control={form.control} name="language" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Language</FormLabel>
-                      <FormControl><Input {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="availabilityStatus" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Status</FormLabel>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="language" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Language</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="e.g., English, Spanish"
+                              className="h-11"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                    </div>
+                  </div>
+
+                  {/* Availability Status */}
+                  <div className="space-y-4">
+                    <h3 className="text-base font-semibold border-b pb-2">Availability</h3>
+                    <FormField control={form.control} name="availabilityStatus" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Current Status</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select status" />
+                          <FormControl>
+                            <SelectTrigger className="h-11">
+                              <SelectValue placeholder="Select availability status" />
                             </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                <SelectItem value="available">Available</SelectItem>
-                                <SelectItem value="reserved">Reserved</SelectItem>
-                                <SelectItem value="checked_out">Checked Out</SelectItem>
-                            </SelectContent>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="available">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                Available
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="reserved">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                                Reserved
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="checked_out">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                                Checked Out
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
                         </Select>
                         <FormMessage />
-                    </FormItem>
-                  )} />
-                  <DialogFooter>
-                    <Button type="button" variant="ghost" onClick={closeDialog}>Cancel</Button>
-                    <Button type="submit">Save</Button>
+                      </FormItem>
+                    )} />
+                  </div>
+                  <DialogFooter className="flex-col sm:flex-row gap-3 pt-6 border-t">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={closeDialog}
+                      className="w-full sm:w-auto"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="w-full sm:w-auto"
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      {editingBook ? 'Update Book' : 'Add Book'}
+                    </Button>
                   </DialogFooter>
                 </form>
               </Form>
@@ -302,46 +382,55 @@ export default function AdminBookManagement() {
         </div>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Author</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead><span className="sr-only">Actions</span></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {books.map((book) => (
-              <TableRow key={book.id}>
-                <TableCell className="font-medium">{book.title}</TableCell>
-                <TableCell>{book.author}</TableCell>
-                <TableCell>{book.category}</TableCell>
-                <TableCell>
-                  <Badge className={cn("text-white", getStatusBadgeVariant(book.availabilityStatus))}>
-                    {book.availabilityStatus.replace('_', ' ')}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Toggle menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => openDialog(book)}>Edit</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive" onClick={() => deleteBook(book.id)}>Delete</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="min-w-[200px]">Title</TableHead>
+                <TableHead className="hidden sm:table-cell min-w-[150px]">Author</TableHead>
+                <TableHead className="hidden md:table-cell">Category</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="w-[70px]"><span className="sr-only">Actions</span></TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {books.map((book) => (
+                <TableRow key={book.id}>
+                  <TableCell className="font-medium">
+                    <div>
+                      <div className="font-medium">{book.title}</div>
+                      <div className="text-sm text-muted-foreground sm:hidden">
+                        by {book.author}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell">{book.author}</TableCell>
+                  <TableCell className="hidden md:table-cell">{book.category}</TableCell>
+                  <TableCell>
+                    <Badge className={cn("text-white text-xs", getStatusBadgeVariant(book.availabilityStatus))}>
+                      {book.availabilityStatus.replace('_', ' ')}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Toggle menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => openDialog(book)}>Edit</DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive" onClick={() => deleteBook(book.id)}>Delete</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   );
