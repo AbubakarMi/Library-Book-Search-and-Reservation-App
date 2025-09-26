@@ -22,13 +22,16 @@ const commonNavItems = [
 
 const userNavItems = [
   { href: "/dashboard/user/bookmarks", label: "Bookmarks", icon: Bookmark },
-  { href: "/dashboard/user/borrowings", label: "My Books", icon: BookOpen },
+  { href: "/dashboard/user/borrowing", label: "Borrow Books", icon: BookOpen },
+  { href: "/dashboard/user/borrowings", label: "My Books", icon: Book },
+  { href: "/dashboard/user/returns", label: "Returns", icon: RotateCcw },
 ];
 
 const adminNavItems = [
   { href: "/dashboard/admin/books", label: "Books", icon: Book },
   { href: "/dashboard/admin/reservations", label: "Reservations", icon: Calendar },
-  { href: "/dashboard/admin/borrowing", label: "Borrowing", icon: RotateCcw },
+  { href: "/dashboard/admin/borrowing", label: "Borrowing", icon: BookOpen },
+  { href: "/dashboard/admin/returns", label: "Returns", icon: RotateCcw },
   { href: "/dashboard/admin/users", label: "Users", icon: Users },
   { href: "/dashboard/admin/reports", label: "Reports", icon: FileText },
 ];

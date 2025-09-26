@@ -32,6 +32,9 @@ export type BorrowingRecord = {
   borrowDate: string;
   dueDate: string;
   returnDate?: string;
-  status: "active" | "returned" | "overdue";
+  status: "active" | "returned" | "overdue" | "return_requested";
   fineAmount?: number;
+  returnCondition?: "excellent" | "good" | "fair" | "damaged";
+  librarianNotes?: string;
+  returnNotes?: string;
 };
