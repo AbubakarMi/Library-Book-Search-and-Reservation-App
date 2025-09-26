@@ -2,21 +2,26 @@
 
 import { createContext, useState, useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile
+} from "firebase/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 import type { User } from "@/lib/types";
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, pass: string) => Promise<void>;
+  login: (emailOrUsername: string, pass: string) => Promise<void>;
   signup: (email: string, pass: string, name: string) => Promise<void>;
   logout: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Mock users
-const mockUser: User = { id: "user-1", name: "Alice Johnson", email: "user@libroreserva.com", role: "user", avatarUrl: 'https://i.pravatar.cc/150?u=user-1' };
-const mockAdmin: User = { id: "user-admin", name: "Admin User", email: "admin@libroreserva.com", role: "admin", avatarUrl: 'https://i.pravatar.cc/150?u=user-admin' };
 
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -25,61 +30,84 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Mock checking for a logged-in user
-    const storedUser = sessionStorage.getItem("libroreserva_user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setUser({
+            id: firebaseUser.uid,
+            name: userData.name || firebaseUser.displayName || "Unknown",
+            email: firebaseUser.email || "",
+            role: userData.role || "user",
+            avatarUrl: userData.avatarUrl || `https://i.pravatar.cc/150?u=${firebaseUser.uid}`
+          });
+        } else {
+          setUser({
+            id: firebaseUser.uid,
+            name: firebaseUser.displayName || "Unknown",
+            email: firebaseUser.email || "",
+            role: "user",
+            avatarUrl: `https://i.pravatar.cc/150?u=${firebaseUser.uid}`
+          });
+        }
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  const login = async (email: string, pass: string) => {
+  const login = async (emailOrUsername: string, pass: string) => {
     setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
+    try {
+      let email = emailOrUsername;
 
-    // Trim whitespace and convert to lowercase for comparison
-    const trimmedEmail = email.trim().toLowerCase();
-    const trimmedPass = pass.trim();
+      // Check if it's the special admin username
+      if (emailOrUsername === "LibraryAdmin") {
+        email = "admin@libroreserva.com";
+      }
 
-    console.log("Login attempt:", { email: trimmedEmail, pass: trimmedPass }); // Debug log
-
-    let loggedInUser: User | null = null;
-    if (trimmedEmail === "admin@libroreserva.com" && trimmedPass === "admin123") {
-        console.log("Admin login successful"); // Debug log
-        loggedInUser = mockAdmin;
-    } else if (trimmedEmail === "user@libroreserva.com" && trimmedPass === "user123") {
-        console.log("User login successful"); // Debug log
-        loggedInUser = mockUser;
-    } else {
-        console.log("Login failed - invalid credentials"); // Debug log
-        setLoading(false);
-        throw new Error("Invalid credentials");
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch (error) {
+      setLoading(false);
+      throw new Error("Invalid credentials");
     }
-
-    setUser(loggedInUser);
-    sessionStorage.setItem("libroreserva_user", JSON.stringify(loggedInUser));
-    setLoading(false);
   };
-  
+
   const signup = async (email: string, pass: string, name: string) => {
     setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const newUser: User = {
-        id: `user-${Date.now()}`,
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+      const firebaseUser = userCredential.user;
+
+      await updateProfile(firebaseUser, {
+        displayName: name
+      });
+
+      await setDoc(doc(db, "users", firebaseUser.uid), {
         name,
         email,
-        role: 'user',
-        avatarUrl: `https://i.pravatar.cc/150?u=${email}`
-    };
-    setUser(newUser);
-    sessionStorage.setItem("libroreserva_user", JSON.stringify(newUser));
-    setLoading(false);
-  }
+        role: "user",
+        avatarUrl: `https://i.pravatar.cc/150?u=${email}`,
+        createdAt: new Date()
+      });
 
-  const logout = () => {
-    setUser(null);
-    sessionStorage.removeItem("libroreserva_user");
-    router.push("/login");
+    } catch (error) {
+      setLoading(false);
+      throw error;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   const value = {

@@ -1,19 +1,19 @@
-// This is a placeholder for Firebase initialization.
-// Create a .env.local file in your project root and add your Firebase config.
-
+// Import the functions you need from the SDKs you need
 import { initializeApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getFunctions } from "firebase/functions";
-import { getMessaging } from "firebase/messaging";
+import { getAnalytics } from "firebase/analytics";
 
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "AIzaSyA55YvEZWsAMJstq7YyM4LkjD2FnkbUvbs",
+  authDomain: "libraryapp-36fe6.firebaseapp.com",
+  projectId: "libraryapp-36fe6",
+  storageBucket: "libraryapp-36fe6.firebasestorage.app",
+  messagingSenderId: "465122546999",
+  appId: "1:465122546999:web:8a2f26f7ec35353006b6b2",
+  measurementId: "G-KX621ENBW2"
 };
 
 // Initialize Firebase
@@ -21,8 +21,7 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0
 
 const auth = getAuth(app);
 const db = getFirestore(app);
-const functions = getFunctions(app);
-const messaging = (typeof window !== "undefined") ? getMessaging(app) : null;
+const analytics = (typeof window !== "undefined") ? getAnalytics(app) : null;
 
 
-export { app, auth, db, functions, messaging };
+export { app, auth, db, analytics };

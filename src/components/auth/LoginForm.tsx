@@ -20,7 +20,7 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Invalid email address." }),
+  email: z.string().min(1, { message: "Email or username is required." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
 });
 
@@ -60,13 +60,13 @@ export function LoginForm() {
     <div className="space-y-4">
       {/* Test Credentials Helper */}
       <div className="p-3 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg">
-        <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">Test Credentials:</h4>
+        <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">Admin Login:</h4>
         <div className="text-xs space-y-1">
           <div className="text-blue-800 dark:text-blue-200">
-            <strong>Admin:</strong> admin@libroreserva.com / admin123
+            <strong>Username:</strong> LibraryAdmin
           </div>
           <div className="text-blue-800 dark:text-blue-200">
-            <strong>User:</strong> user@libroreserva.com / user123
+            <strong>Password:</strong> Pass123
           </div>
         </div>
       </div>
@@ -77,9 +77,9 @@ export function LoginForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>Email or Username</FormLabel>
                 <FormControl>
-                  <Input placeholder="you@example.com" {...field} />
+                  <Input placeholder="you@example.com or username" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
