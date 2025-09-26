@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Upload, X, Image as ImageIcon } from 'lucide-react';
+import Image from 'next/image';
 
 import { books as initialBooks, bookCategories } from '@/lib/mock-data';
 import {
@@ -70,6 +71,9 @@ export default function AdminBookManagement() {
   const [books, setBooks] = useState<Book[]>(initialBooks);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBook, setEditingBook] = useState<Book | null>(null);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<BookFormValues>({
     resolver: zodResolver(bookFormSchema),
@@ -81,7 +85,7 @@ export default function AdminBookManagement() {
     } else {
       const newBook: Book = {
         id: `book-${Date.now()}`,
-        coverImageId: `book-cover-${(books.length % 12) + 1}`,
+        coverImageId: uploadedImage || `book-cover-${(books.length % 12) + 1}`,
         ...data,
       };
       setBooks([newBook, ...books]);
@@ -105,6 +109,35 @@ export default function AdminBookManagement() {
   const closeDialog = () => {
     setIsDialogOpen(false);
     setEditingBook(null);
+    setUploadedImage(null);
+    setImageFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.type.startsWith('image/')) {
+        setImageFile(file);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setUploadedImage(e.target?.result as string);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        alert('Please select a valid image file.');
+      }
+    }
+  };
+
+  const removeImage = () => {
+    setUploadedImage(null);
+    setImageFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const deleteBook = (bookId: string) => {
@@ -142,6 +175,60 @@ export default function AdminBookManagement() {
               </DialogHeader>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  {/* Image Upload Section */}
+                  <div className="space-y-2">
+                    <FormLabel>Book Cover Image</FormLabel>
+                    <div className="flex items-center gap-4">
+                      {uploadedImage ? (
+                        <div className="relative">
+                          <div className="w-24 h-32 relative rounded-md overflow-hidden border">
+                            <Image
+                              src={uploadedImage}
+                              alt="Book cover preview"
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                            onClick={removeImage}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="w-24 h-32 border-2 border-dashed border-muted-foreground/25 rounded-md flex items-center justify-center">
+                          <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          id="cover-upload"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-full"
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          {uploadedImage ? 'Change Image' : 'Upload Cover Image'}
+                        </Button>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Recommended: 300x400px, max 5MB
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                   <FormField control={form.control} name="title" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Title</FormLabel>

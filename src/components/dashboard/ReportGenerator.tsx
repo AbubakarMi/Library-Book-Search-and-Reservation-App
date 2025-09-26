@@ -1,23 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { generateBookUsageReport, GenerateBookUsageReportOutput } from "@/ai/flows/generate-book-usage-report";
+import { GenerateBookUsageReportOutput } from "@/ai/flows/generate-book-usage-report";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { reservations, books } from "@/lib/mock-data";
 import { Loader2, FileText } from "lucide-react";
-
-async function handleGenerateReport(): Promise<GenerateBookUsageReportOutput> {
-    "use server";
-    
-    // Create a string from mock data to simulate real usage data
-    const usageDataString = reservations.map(r => {
-        const book = books.find(b => b.id === r.bookID);
-        return `Reservation for "${book?.title || 'Unknown Book'}" on ${r.reservationDate}, status: ${r.status}.`;
-    }).join('\n');
-    
-    return await generateBookUsageReport({ usageData: usageDataString });
-}
+import { handleGenerateReport } from "@/lib/actions/report-actions";
 
 export default function ReportGenerator() {
   const [report, setReport] = useState<GenerateBookUsageReportOutput | null>(null);

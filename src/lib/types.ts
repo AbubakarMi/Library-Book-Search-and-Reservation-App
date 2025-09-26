@@ -13,8 +13,14 @@ export type User = {
   id: string;
   name: string;
   email: string;
-  role: "user" | "admin";
+  role: "admin" | "staff" | "student";
   avatarUrl?: string;
+  isActive?: boolean;
+  suspendedAt?: string;
+  suspendedBy?: string;
+  suspensionReason?: string;
+  createdBy?: string;
+  password?: string;
 };
 
 export type Reservation = {

@@ -15,9 +15,10 @@ interface DashboardSidebarProps {
   userRole: "user" | "admin";
 }
 
-const commonNavItems = [
-  { href: "/", label: "Home", icon: Home },
-];
+const getCommonNavItems = (userRole: "user" | "admin") =>
+  userRole === "admin" ? [] : [
+    { href: "/", label: "Home", icon: Home }
+  ];
 
 const userNavItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -38,6 +39,7 @@ const adminNavItems = [
 
 export default function DashboardSidebar({ userRole }: DashboardSidebarProps) {
   const pathname = usePathname();
+  const commonNavItems = getCommonNavItems(userRole);
   const navItems = userRole === "admin" ? [...commonNavItems, ...adminNavItems] : [...commonNavItems, ...userNavItems];
 
   return (
