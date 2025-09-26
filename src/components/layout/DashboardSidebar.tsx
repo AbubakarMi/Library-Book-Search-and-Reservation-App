@@ -17,10 +17,10 @@ interface DashboardSidebarProps {
 
 const commonNavItems = [
   { href: "/", label: "Home", icon: Home },
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
 ];
 
 const userNavItems = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/user/bookmarks", label: "Bookmarks", icon: Bookmark },
   { href: "/dashboard/user/borrowing", label: "Borrow Books", icon: BookOpen },
   { href: "/dashboard/user/borrowings", label: "My Books", icon: Book },

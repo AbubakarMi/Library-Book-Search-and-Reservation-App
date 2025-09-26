@@ -47,11 +47,19 @@ export function LoginForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
     setError(null);
+
+    console.log("Form submit with values:", {
+      email: values.email,
+      password: values.password.length + " chars"
+    });
+
     try {
       await login(values.email, values.password);
+      console.log("Login successful, redirecting to dashboard");
       router.push("/dashboard");
-    } catch (err) {
-      setError("Invalid email or password. Please try again.");
+    } catch (err: any) {
+      console.error("Login form error:", err);
+      setError(err.message || "Invalid email or password. Please try again.");
       setLoading(false);
     }
   }
@@ -66,7 +74,7 @@ export function LoginForm() {
             <strong>Username:</strong> LibraryAdmin
           </div>
           <div className="text-blue-800 dark:text-blue-200">
-            <strong>Password:</strong> Pass123
+            <strong>Password:</strong> Pass123456
           </div>
         </div>
       </div>
