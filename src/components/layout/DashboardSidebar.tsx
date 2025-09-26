@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Book, FileText, Home, LayoutDashboard, Settings, Users, Bookmark, Calendar, RotateCcw } from "lucide-react";
+import { Book, FileText, Home, LayoutDashboard, Settings, Users, Bookmark, Calendar, RotateCcw, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -22,6 +22,7 @@ const commonNavItems = [
 
 const userNavItems = [
   { href: "/dashboard/user/bookmarks", label: "Bookmarks", icon: Bookmark },
+  { href: "/dashboard/user/borrowings", label: "My Books", icon: BookOpen },
 ];
 
 const adminNavItems = [

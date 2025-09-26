@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from "@/hooks/useAuth";
 import { useNotifications } from "@/context/NotificationContext";
 import UserReservations from "@/components/dashboard/UserReservations";
+import UserBorrowings from "@/components/dashboard/UserBorrowings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +24,9 @@ import {
   Heart,
   CheckCircle,
   AlertCircle,
-  Bell
+  Bell,
+  ArrowRight,
+  RotateCcw
 } from "lucide-react";
 import { books } from "@/lib/mock-data";
 import { placeholderImages } from "@/lib/placeholder-images";
@@ -218,8 +221,52 @@ export default function UserDashboardPage() {
             </Card>
           </div>
 
-          {/* Current Reservations */}
-          <UserReservations />
+          {/* Library Management Tabs */}
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className="border-border/50">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-primary" />
+                    My Reservations
+                  </CardTitle>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/dashboard/user/reservations" className="text-xs">
+                      View All <ArrowRight className="h-3 w-3 ml-1" />
+                    </Link>
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8 text-muted-foreground">
+                  <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Your recent reservations will appear here</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/50">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <BookOpen className="h-5 w-5 text-primary" />
+                    Borrowed Books
+                  </CardTitle>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/dashboard/user/borrowings" className="text-xs">
+                      View All <ArrowRight className="h-3 w-3 ml-1" />
+                    </Link>
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8 text-muted-foreground">
+                  <BookOpen className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Your borrowed books will appear here</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Recommended Books */}
           <Card className="border-border/50">
