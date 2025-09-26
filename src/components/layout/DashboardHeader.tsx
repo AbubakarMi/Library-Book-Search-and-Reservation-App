@@ -59,8 +59,11 @@ export default function DashboardHeader() {
           <h1 className="text-lg font-semibold">LibroReserva</h1>
         </div>
 
+        {/* Spacer for desktop to push controls to the right */}
+        <div className="hidden sm:block flex-1"></div>
+
         {/* Right side - User controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3 ml-auto">
           {/* Theme Toggle */}
           <ThemeToggle />
 

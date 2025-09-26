@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Book, FileText, Home, LayoutDashboard, Settings, Users, Bookmark, Calendar, RotateCcw, BookOpen, User } from "lucide-react";
+import { Book, FileText, Settings, Users, Calendar, ArrowLeft, BookOpen, UserCircle, Search, Library, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -19,27 +19,25 @@ interface DashboardSidebarProps {
 const getCommonNavItems = (userRole: "admin" | "staff" | "student") => [];
 
 const userNavItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/user/bookmarks", label: "Bookmarks", icon: Bookmark },
-  { href: "/dashboard/user/borrowing", label: "Borrow Books", icon: BookOpen },
-  { href: "/dashboard/user/borrowings", label: "My Books", icon: Book },
-  { href: "/dashboard/user/returns", label: "Returns", icon: RotateCcw },
+  { href: "/dashboard/user/bookmarks", label: "Browse Books", icon: Search },
+  { href: "/dashboard/user/borrowings", label: "My Books", icon: Library },
+  { href: "/dashboard/user/returns", label: "Returns", icon: ArrowLeft },
 ];
 
 const adminNavItems = [
   { href: "/dashboard/admin/books", label: "Books", icon: Book },
   { href: "/dashboard/admin/reservations", label: "Reservations", icon: Calendar },
   { href: "/dashboard/admin/borrowing", label: "Borrowing", icon: BookOpen },
-  { href: "/dashboard/admin/returns", label: "Returns", icon: RotateCcw },
+  { href: "/dashboard/admin/returns", label: "Returns", icon: ArrowLeft },
   { href: "/dashboard/admin/users", label: "Users", icon: Users },
-  { href: "/dashboard/admin/reports", label: "Reports", icon: FileText },
+  { href: "/dashboard/admin/reports", label: "Reports", icon: TrendingUp },
 ];
 
 const getBottomNavItems = (userRole: "admin" | "staff" | "student") => [
   {
     href: userRole === "admin" ? "/dashboard/admin/profile" : "/dashboard/user/profile",
     label: "Profile",
-    icon: User
+    icon: UserCircle
   },
   { href: "#", label: "Settings", icon: Settings }
 ];
@@ -52,7 +50,7 @@ export default function DashboardSidebar({ userRole }: DashboardSidebarProps) {
 
   const MobileNavigation = () => (
     React.createElement("div", {
-      className: "sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t"
+      className: "md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t"
     },
       React.createElement("div", {
         className: "flex items-center justify-around p-2"
@@ -90,11 +88,11 @@ export default function DashboardSidebar({ userRole }: DashboardSidebarProps) {
 
   const DesktopSidebar = () => (
     React.createElement("aside", {
-      className: "hidden w-16 flex-col border-r bg-background sm:flex"
+      className: "hidden w-16 flex-col border-r bg-background md:flex"
     },
       React.createElement(TooltipProvider, null,
         React.createElement("nav", {
-          className: "flex flex-col items-center gap-4 px-2 sm:py-5"
+          className: "flex flex-col items-center gap-2 px-2 py-4"
         },
           React.createElement(Link, {
             href: "/dashboard",
@@ -122,7 +120,7 @@ export default function DashboardSidebar({ userRole }: DashboardSidebarProps) {
           )
         ),
         React.createElement("nav", {
-          className: "mt-auto flex flex-col items-center gap-4 px-2 sm:py-5"
+          className: "mt-auto flex flex-col items-center gap-2 px-2 py-2"
         },
           ...bottomNavItems.map((item) =>
             React.createElement(Tooltip, { key: item.href },

@@ -33,43 +33,59 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const { toast } = useToast();
 
-  // Initialize with some mock notifications
+  // Load notifications from localStorage for persistence
   useEffect(() => {
-    const mockNotifications: Notification[] = [
-      {
-        id: '1',
-        type: 'success',
-        title: 'Book Reserved Successfully',
-        message: 'Your reservation for "The Great Gatsby" has been confirmed.',
-        timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-        read: false,
-        actionUrl: '/dashboard/user',
-        actionText: 'View Reservations',
-        bookId: '1'
-      },
-      {
-        id: '2',
-        type: 'info',
-        title: 'Book Ready for Pickup',
-        message: '"To Kill a Mockingbird" is now available for pickup at the front desk.',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-        read: false,
-        actionUrl: '/dashboard/user',
-        actionText: 'View Details'
-      },
-      {
-        id: '3',
-        type: 'warning',
-        title: 'Return Reminder',
-        message: 'Your book "1984" is due for return in 2 days.',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-        read: true,
-        actionUrl: '/dashboard/user',
-        actionText: 'Extend Loan'
+    const userId = sessionStorage.getItem('library_user') ? JSON.parse(sessionStorage.getItem('library_user')!).id : null;
+    if (userId) {
+      const savedNotifications = localStorage.getItem(`notifications_${userId}`);
+      if (savedNotifications) {
+        try {
+          const parsed = JSON.parse(savedNotifications);
+          setNotifications(parsed.map((n: any) => ({
+            ...n,
+            timestamp: new Date(n.timestamp)
+          })));
+        } catch (error) {
+          console.error('Error loading notifications:', error);
+        }
       }
-    ];
-    setNotifications(mockNotifications);
+    }
   }, []);
+
+  // Save notifications to localStorage whenever they change
+  useEffect(() => {
+    const userId = sessionStorage.getItem('library_user') ? JSON.parse(sessionStorage.getItem('library_user')!).id : null;
+    if (userId && notifications.length > 0) {
+      localStorage.setItem(`notifications_${userId}`, JSON.stringify(notifications));
+    }
+  }, [notifications]);
+
+  // Listen for welcome notifications from signup
+  useEffect(() => {
+    const handleNewNotification = (event: CustomEvent) => {
+      const notificationData = event.detail;
+      const newNotification: Notification = {
+        ...notificationData,
+        id: Date.now().toString(),
+        timestamp: new Date(),
+        read: false
+      };
+
+      setNotifications(prev => [newNotification, ...prev]);
+
+      // Show toast notification
+      toast({
+        title: newNotification.title,
+        description: newNotification.message,
+        duration: 5000,
+      });
+    };
+
+    window.addEventListener('newNotification', handleNewNotification as EventListener);
+    return () => {
+      window.removeEventListener('newNotification', handleNewNotification as EventListener);
+    };
+  }, [toast]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -109,6 +125,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   const clearAll = () => {
     setNotifications([]);
+    const userId = sessionStorage.getItem('library_user') ? JSON.parse(sessionStorage.getItem('library_user')!).id : null;
+    if (userId) {
+      localStorage.removeItem(`notifications_${userId}`);
+    }
   };
 
   const sendReservationNotification = (bookTitle: string, status: 'confirmed' | 'ready' | 'overdue') => {

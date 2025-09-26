@@ -4,7 +4,8 @@ import { AuthProvider } from '@/context/AuthContext';
 import { NotificationProvider } from '@/context/NotificationContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { Toaster } from '@/components/ui/toaster';
-import Header from '@/components/layout/Header';
+import { ConditionalHeader } from '@/components/layout/ConditionalHeader';
+import { ConditionalBackButton } from '@/components/layout/ConditionalBackButton';
 import { FloatingSearchButton } from '@/components/ui/floating-search';
 import { cn } from '@/lib/utils';
 
@@ -30,7 +31,8 @@ export default function RootLayout({
           <AuthProvider>
             <NotificationProvider>
               <div className="relative flex min-h-screen flex-col">
-                <Header />
+                <ConditionalHeader />
+                <ConditionalBackButton />
                 <main className="flex-1">{children}</main>
                 <FloatingSearchButton />
               </div>

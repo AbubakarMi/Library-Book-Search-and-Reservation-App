@@ -211,8 +211,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log("Setting user in context and session storage");
       setUser(loggedInUser);
       sessionStorage.setItem("library_user", JSON.stringify(loggedInUser));
-      setLoading(false);
 
+      // Send welcome notification for new students
+      if (typeof window !== 'undefined') {
+        const welcomeNotification = {
+          type: 'success' as const,
+          title: 'Welcome to LibroReserva!',
+          message: `Welcome ${name}! Your student account has been created successfully. Start exploring our library collection and enjoy your reading journey.`
+        };
+
+        // Store welcome notification in localStorage for pickup by NotificationContext
+        setTimeout(() => {
+          const event = new CustomEvent('newNotification', { detail: welcomeNotification });
+          window.dispatchEvent(event);
+        }, 1000);
+      }
+
+      setLoading(false);
       console.log("Signup completed successfully");
 
     } catch (error: any) {

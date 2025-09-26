@@ -39,11 +39,11 @@ export default function UserDashboardPage() {
   const { notifications, unreadCount } = useNotifications();
   const [bookmarkedBooks, setBookmarkedBooks] = useState<typeof books>([]);
   const [readingStats, setReadingStats] = useState({
-    booksRead: 12,
-    booksReserved: 3,
-    totalReadingTime: 847, // minutes
-    readingStreak: 7, // days
-    readingGoal: 24, // books per year
+    booksRead: 0,
+    booksReserved: 0,
+    totalReadingTime: 0, // minutes
+    readingStreak: 0, // days
+    readingGoal: 12, // books per year
     favoriteGenre: "Fiction"
   });
 
@@ -56,33 +56,8 @@ export default function UserDashboardPage() {
     }
   }, [user]);
 
-  // Mock recent activity data
-  const recentActivity = [
-    {
-      id: 1,
-      type: 'reservation',
-      action: 'Reserved',
-      book: 'The Great Gatsby',
-      timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 mins ago
-      status: 'success'
-    },
-    {
-      id: 2,
-      type: 'completion',
-      action: 'Finished reading',
-      book: 'To Kill a Mockingbird',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-      status: 'success'
-    },
-    {
-      id: 3,
-      type: 'bookmark',
-      action: 'Bookmarked',
-      book: '1984',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-      status: 'info'
-    }
-  ];
+  // Recent activity based on actual user actions
+  const recentActivity: any[] = []; // Will be populated when user performs actual actions
 
   // Recommended books based on reading history
   const recommendedBooks = books.filter(book =>
@@ -317,24 +292,12 @@ export default function UserDashboardPage() {
                 Recent Activity
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-3 pb-3 last:pb-0 last:border-0 border-b border-border/50">
-                  <div className={`w-2 h-2 rounded-full mt-2 ${
-                    activity.status === 'success' ? 'bg-green-500' :
-                    activity.status === 'info' ? 'bg-blue-500' : 'bg-orange-500'
-                  }`} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm">
-                      <span className="font-medium">{activity.action}</span>{' '}
-                      <span className="text-muted-foreground">"{activity.book}"</span>
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(activity.timestamp, 'MMM d, h:mm a')}
-                    </p>
-                  </div>
-                </div>
-              ))}
+            <CardContent>
+              <div className="text-center py-8 text-muted-foreground">
+                <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Your activity will appear here as you use the library</p>
+                <p className="text-xs mt-1">Reserve books, return books, and more</p>
+              </div>
             </CardContent>
           </Card>
 
