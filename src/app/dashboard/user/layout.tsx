@@ -8,7 +8,7 @@ export default function UserLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ProtectedRoute requiredRole="user">
+    <ProtectedRoute requiredRole="student">
       {children}
     </ProtectedRoute>
   );

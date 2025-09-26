@@ -21,6 +21,10 @@ export type User = {
   suspensionReason?: string;
   createdBy?: string;
   password?: string;
+  // Student-specific fields
+  registrationNumber?: string;
+  department?: string;
+  profilePicture?: string;
 };
 
 export type Reservation = {

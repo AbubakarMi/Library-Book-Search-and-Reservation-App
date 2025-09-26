@@ -10,7 +10,7 @@ import Link from "next/link";
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  requiredRole?: "user" | "admin";
+  requiredRole?: "admin" | "staff" | "student";
   fallbackUrl?: string;
 }
 
@@ -33,6 +33,8 @@ export default function ProtectedRoute({
         // Redirect to appropriate dashboard based on user role
         if (user.role === "admin") {
           router.push("/dashboard/admin");
+        } else if (user.role === "student" || user.role === "staff") {
+          router.push("/dashboard/user");
         } else {
           router.push("/dashboard/user");
         }

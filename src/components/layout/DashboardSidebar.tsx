@@ -13,13 +13,10 @@ import {
 } from "@/components/ui/tooltip";
 
 interface DashboardSidebarProps {
-  userRole: "user" | "admin";
+  userRole: "admin" | "staff" | "student";
 }
 
-const getCommonNavItems = (userRole: "user" | "admin") =>
-  userRole === "admin" ? [] : [
-    { href: "/", label: "Home", icon: Home }
-  ];
+const getCommonNavItems = (userRole: "admin" | "staff" | "student") => [];
 
 const userNavItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },

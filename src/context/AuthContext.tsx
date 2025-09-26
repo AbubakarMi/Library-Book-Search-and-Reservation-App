@@ -6,11 +6,17 @@ import { doc, setDoc, getDoc, collection, query, where, getDocs } from "firebase
 import { db } from "@/lib/firebase";
 import type { User } from "@/lib/types";
 
+interface StudentInfo {
+  registrationNumber: string;
+  department: string;
+  profilePicture?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (emailOrUsername: string, pass: string) => Promise<void>;
-  signup: (email: string, pass: string, name: string) => Promise<void>;
+  signup: (email: string, pass: string, name: string, studentInfo?: StudentInfo) => Promise<void>;
   logout: () => void;
 }
 
@@ -135,30 +141,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signup = async (email: string, pass: string, name: string) => {
+  const signup = async (email: string, pass: string, name: string, studentInfo?: StudentInfo) => {
     setLoading(true);
     try {
+      console.log("Starting signup process for:", email);
+
       // Check if user already exists
       const usersRef = collection(db, "users");
       const existingUserQuery = query(usersRef, where("email", "==", email));
       const existingUser = await getDocs(existingUserQuery);
 
       if (!existingUser.empty) {
+        console.log("User already exists with email:", email);
         throw new Error("User with this email already exists");
       }
 
+      // Check if registration number already exists (if provided)
+      if (studentInfo?.registrationNumber) {
+        console.log("Checking registration number:", studentInfo.registrationNumber);
+        const regNumberQuery = query(usersRef, where("registrationNumber", "==", studentInfo.registrationNumber));
+        const existingRegNumber = await getDocs(regNumberQuery);
+
+        if (!existingRegNumber.empty) {
+          console.log("Registration number already exists:", studentInfo.registrationNumber);
+          throw new Error("Registration number already exists");
+        }
+      }
+
       // Create new user
-      const userId = `user-${Date.now()}`;
+      const userId = `student-${Date.now()}`;
       const newUser = {
         id: userId,
         name,
         email,
         password: pass, // In production, hash this password
-        role: "user",
-        avatarUrl: `https://i.pravatar.cc/150?u=${email}`,
+        role: "student",
+        avatarUrl: studentInfo?.profilePicture || `https://i.pravatar.cc/150?u=${email}`,
+        registrationNumber: studentInfo?.registrationNumber,
+        department: studentInfo?.department,
+        profilePicture: studentInfo?.profilePicture,
+        isActive: true,
         createdAt: new Date()
       };
 
+      // Validate document size (Firestore limit is 1MB)
+      const documentSize = new Blob([JSON.stringify(newUser)]).size;
+      console.log("Document size:", documentSize, "bytes");
+
+      if (documentSize > 1000000) { // 1MB limit
+        throw new Error("Profile picture is too large. Please choose a smaller image or contact support.");
+      }
+
+      console.log("Creating user document with ID:", userId);
       await setDoc(doc(db, "users", userId), newUser);
 
       // Auto-login the new user
@@ -166,16 +200,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         id: userId,
         name,
         email,
-        role: "user",
-        avatarUrl: `https://i.pravatar.cc/150?u=${email}`
+        role: "student",
+        avatarUrl: studentInfo?.profilePicture || `https://i.pravatar.cc/150?u=${email}`,
+        registrationNumber: studentInfo?.registrationNumber,
+        department: studentInfo?.department,
+        profilePicture: studentInfo?.profilePicture,
+        isActive: true
       };
 
+      console.log("Setting user in context and session storage");
       setUser(loggedInUser);
       sessionStorage.setItem("library_user", JSON.stringify(loggedInUser));
       setLoading(false);
 
-    } catch (error) {
+      console.log("Signup completed successfully");
+
+    } catch (error: any) {
+      console.error("Signup error in AuthContext:", error);
       setLoading(false);
+
+      // Handle specific Firebase errors
+      if (error.code === 'invalid-argument' && error.message.includes('exceeds the maximum allowed size')) {
+        throw new Error("Profile picture is too large. Please choose a smaller image.");
+      }
+
       throw error;
     }
   };

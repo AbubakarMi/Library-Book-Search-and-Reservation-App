@@ -41,7 +41,9 @@ import {
   X,
   Upload,
   Eye,
-  EyeOff
+  EyeOff,
+  GraduationCap,
+  BookOpen
 } from "lucide-react";
 import Image from "next/image";
 
@@ -49,6 +51,8 @@ const profileFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
   username: z.string().min(3, "Username must be at least 3 characters"),
+  registrationNumber: z.string().optional(),
+  department: z.string().optional(),
 });
 
 const passwordFormSchema = z.object({
@@ -81,6 +85,8 @@ export default function ProfileManagement() {
       name: user?.name || "",
       email: user?.email || "",
       username: user?.email?.split("@")[0] || "",
+      registrationNumber: user?.registrationNumber || "",
+      department: user?.department || "",
     },
   });
 
@@ -216,6 +222,20 @@ export default function ProfileManagement() {
                   {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                 </Badge>
 
+                {user.role === "student" && user.registrationNumber && (
+                  <Badge variant="outline">
+                    <GraduationCap className="w-3 h-3 mr-1" />
+                    {user.registrationNumber}
+                  </Badge>
+                )}
+
+                {user.role === "student" && user.department && (
+                  <Badge variant="outline">
+                    <BookOpen className="w-3 h-3 mr-1" />
+                    {user.department}
+                  </Badge>
+                )}
+
                 <Badge variant="outline">
                   <User className="w-3 h-3 mr-1" />
                   Active Account
@@ -300,6 +320,38 @@ export default function ProfileManagement() {
                     )}
                   />
 
+                  {user.role === "student" && (
+                    <>
+                      <FormField
+                        control={profileForm.control}
+                        name="registrationNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Registration Number</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Enter registration number" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={profileForm.control}
+                        name="department"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Department</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Enter department" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </>
+                  )}
+
                   <Button type="submit" className="w-full">
                     <Save className="h-4 w-4 mr-2" />
                     Save Changes
@@ -329,6 +381,24 @@ export default function ProfileManagement() {
                   <Label className="text-sm font-medium">Role</Label>
                   <p className="text-sm text-muted-foreground mt-1 capitalize">{user.role}</p>
                 </div>
+
+                {user.role === "student" && (
+                  <>
+                    {user.registrationNumber && (
+                      <div>
+                        <Label className="text-sm font-medium">Registration Number</Label>
+                        <p className="text-sm text-muted-foreground mt-1">{user.registrationNumber}</p>
+                      </div>
+                    )}
+
+                    {user.department && (
+                      <div>
+                        <Label className="text-sm font-medium">Department</Label>
+                        <p className="text-sm text-muted-foreground mt-1">{user.department}</p>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             )}
           </CardContent>
