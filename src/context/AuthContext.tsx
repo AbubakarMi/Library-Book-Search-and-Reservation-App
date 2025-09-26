@@ -36,12 +36,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, pass: string) => {
     setLoading(true);
     await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Trim whitespace and convert to lowercase for comparison
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPass = pass.trim();
+
+    console.log("Login attempt:", { email: trimmedEmail, pass: trimmedPass }); // Debug log
+
     let loggedInUser: User | null = null;
-    if (email === "admin@libroreserva.com" && pass === "admin123") {
+    if (trimmedEmail === "admin@libroreserva.com" && trimmedPass === "admin123") {
+        console.log("Admin login successful"); // Debug log
         loggedInUser = mockAdmin;
-    } else if (email === "user@libroreserva.com" && pass === "user123") {
+    } else if (trimmedEmail === "user@libroreserva.com" && trimmedPass === "user123") {
+        console.log("User login successful"); // Debug log
         loggedInUser = mockUser;
     } else {
+        console.log("Login failed - invalid credentials"); // Debug log
         setLoading(false);
         throw new Error("Invalid credentials");
     }

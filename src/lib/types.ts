@@ -24,3 +24,14 @@ export type Reservation = {
   reservationDate: string;
   status: "pending" | "ready" | "completed" | "cancelled";
 };
+
+export type BorrowingRecord = {
+  id: string;
+  userID: string;
+  bookID: string;
+  borrowDate: string;
+  dueDate: string;
+  returnDate?: string;
+  status: "active" | "returned" | "overdue";
+  fineAmount?: number;
+};

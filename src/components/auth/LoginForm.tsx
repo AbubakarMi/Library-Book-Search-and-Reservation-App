@@ -58,6 +58,18 @@ export function LoginForm() {
 
   return (
     <div className="space-y-4">
+      {/* Test Credentials Helper */}
+      <div className="p-3 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg">
+        <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">Test Credentials:</h4>
+        <div className="text-xs space-y-1">
+          <div className="text-blue-800 dark:text-blue-200">
+            <strong>Admin:</strong> admin@libroreserva.com / admin123
+          </div>
+          <div className="text-blue-800 dark:text-blue-200">
+            <strong>User:</strong> user@libroreserva.com / user123
+          </div>
+        </div>
+      </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField

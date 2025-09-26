@@ -17,10 +17,11 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['PT Sans', 'sans-serif'],
-        headline: ['PT Sans', 'sans-serif'],
-        sans: ['PT Sans', 'sans-serif'],
-        code: ['monospace'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        headline: ['Space Grotesk', 'Inter', 'system-ui', 'sans-serif'],
+        body: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Cal Sans', 'Space Grotesk', 'Inter', 'sans-serif'],
+        code: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
       },
       colors: {
         background: 'hsl(var(--background))',

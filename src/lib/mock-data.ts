@@ -1,4 +1,4 @@
-import type { Book, User, Reservation } from "./types";
+import type { Book, User, Reservation, BorrowingRecord } from "./types";
 
 export const bookCategories = [
     "Fiction", "Science Fiction", "Mystery", "Fantasy", "Biography", 
@@ -32,4 +32,12 @@ export const reservations: Reservation[] = [
     { id: 'res-3', userID: 'user-1', bookID: 'book-7', reservationDate: '2024-04-20', status: 'completed' },
     { id: 'res-4', userID: 'user-2', bookID: 'book-10', reservationDate: '2024-05-15', status: 'pending' },
     { id: 'res-5', userID: 'user-2', bookID: 'book-3', reservationDate: '2024-03-01', status: 'cancelled' }
+];
+
+export const borrowingRecords: BorrowingRecord[] = [
+    { id: 'borrow-1', userID: 'user-1', bookID: 'book-3', borrowDate: '2024-05-01', dueDate: '2024-05-15', status: 'active' },
+    { id: 'borrow-2', userID: 'user-1', bookID: 'book-7', borrowDate: '2024-04-20', dueDate: '2024-05-04', returnDate: '2024-05-02', status: 'returned' },
+    { id: 'borrow-3', userID: 'user-2', bookID: 'book-1', borrowDate: '2024-04-10', dueDate: '2024-04-24', status: 'overdue', fineAmount: 5.00 },
+    { id: 'borrow-4', userID: 'user-1', bookID: 'book-9', borrowDate: '2024-05-10', dueDate: '2024-05-24', status: 'active' },
+    { id: 'borrow-5', userID: 'user-2', bookID: 'book-12', borrowDate: '2024-03-15', dueDate: '2024-03-29', returnDate: '2024-03-28', status: 'returned' }
 ];

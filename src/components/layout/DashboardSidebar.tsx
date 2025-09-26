@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Book, FileText, Home, LayoutDashboard, Settings, Users, Bookmark } from "lucide-react";
+import { Book, FileText, Home, LayoutDashboard, Settings, Users, Bookmark, Calendar, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -26,6 +26,8 @@ const userNavItems = [
 
 const adminNavItems = [
   { href: "/dashboard/admin/books", label: "Books", icon: Book },
+  { href: "/dashboard/admin/reservations", label: "Reservations", icon: Calendar },
+  { href: "/dashboard/admin/borrowing", label: "Borrowing", icon: RotateCcw },
   { href: "/dashboard/admin/users", label: "Users", icon: Users },
   { href: "/dashboard/admin/reports", label: "Reports", icon: FileText },
 ];
