@@ -181,7 +181,7 @@ export default function BookDetailPage({ params }: BookDetailPageProps) {
           </div>
           
           <p className="text-lg leading-relaxed">
-            This comprehensive academic resource is carefully curated by the Abubakar Tafawa Balewa University Bauchi Library to support student learning and research. Our collection focuses on providing quality educational materials that align with the university's academic programs and research initiatives.
+            This comprehensive academic resource is carefully curated by the Aliko Dangote University Of Science and Technology Wudil Library to support student learning and research. Our collection focuses on providing quality educational materials that align with the university's academic programs and research initiatives.
           </p>
 
           <div className="grid grid-cols-2 gap-4 text-sm">
