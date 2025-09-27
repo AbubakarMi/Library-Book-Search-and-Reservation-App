@@ -1,0 +1,277 @@
+/* Mobile Responsiveness Enhancements for Adustech Library */
+
+/* Base responsive design for all screen sizes */
+@media (max-width: 640px) {
+  /* Container and layout adjustments */
+  .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  /* Text and typography */
+  h1 {
+    font-size: 1.5rem !important;
+    line-height: 1.4 !important;
+  }
+
+  h2 {
+    font-size: 1.25rem !important;
+    line-height: 1.4 !important;
+  }
+
+  h3 {
+    font-size: 1.125rem !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Button improvements */
+  .btn-mobile {
+    min-height: 44px !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  /* Form inputs */
+  input, textarea, select {
+    min-height: 44px !important;
+    font-size: 16px !important; /* Prevents zoom on iOS */
+    padding: 0.75rem !important;
+    touch-action: manipulation;
+  }
+
+  /* Cards and content */
+  .card-mobile {
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+    border-radius: 0.5rem !important;
+  }
+
+  /* Grid layouts */
+  .grid-mobile {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  /* Tables */
+  .table-mobile {
+    font-size: 0.875rem !important;
+  }
+
+  .table-mobile th,
+  .table-mobile td {
+    padding: 0.5rem !important;
+  }
+
+  /* Modal and dialog improvements */
+  .modal-mobile {
+    margin: 1rem !important;
+    max-height: calc(100vh - 2rem) !important;
+    border-radius: 0.75rem !important;
+  }
+
+  /* Navigation improvements */
+  .nav-mobile {
+    padding: 0.5rem !important;
+  }
+
+  .nav-mobile .nav-item {
+    padding: 0.75rem !important;
+    min-height: 48px !important;
+  }
+
+  /* Avatar and profile components */
+  .avatar-mobile {
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+  }
+
+  /* Spacing utilities */
+  .space-y-mobile > * + * {
+    margin-top: 1rem !important;
+  }
+
+  .space-x-mobile > * + * {
+    margin-left: 0.5rem !important;
+  }
+
+  /* Flex utilities */
+  .flex-mobile {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .flex-mobile-row {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+  }
+}
+
+/* Extra small screens (phones in portrait) */
+@media (max-width: 375px) {
+  /* Further reduce spacing */
+  .container {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  /* Smaller text on very small screens */
+  body {
+    font-size: 0.875rem !important;
+  }
+
+  /* Compact cards */
+  .card-mobile {
+    padding: 0.75rem !important;
+  }
+
+  /* Smaller buttons on tiny screens */
+  .btn-mobile {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.875rem !important;
+  }
+}
+
+/* Landscape orientation on phones */
+@media (max-height: 480px) and (orientation: landscape) {
+  /* Reduce header height */
+  .header-mobile {
+    height: 3rem !important;
+  }
+
+  /* Compact padding */
+  .container {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+
+  /* Smaller modals */
+  .modal-mobile {
+    max-height: calc(100vh - 1rem) !important;
+    margin: 0.5rem !important;
+  }
+}
+
+/* Touch-friendly improvements */
+@media (pointer: coarse) {
+  /* Larger touch targets */
+  button,
+  a,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+
+  /* Better hover states for touch */
+  .hover-touch:hover {
+    background-color: var(--muted) !important;
+  }
+
+  /* Prevent text selection on interactive elements */
+  .no-select {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+}
+
+/* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* Fix iOS input zoom */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+
+  /* Fix iOS Safari viewport */
+  .ios-fix {
+    min-height: -webkit-fill-available;
+  }
+
+  /* Fix iOS scroll issues */
+  .scroll-ios {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Android specific fixes */
+@media screen and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: 0.001dpcm) {
+  /* Android Chrome fixes */
+  .android-fix {
+    transform: translateZ(0);
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Sharper icons and images */
+  .icon-sharp {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Utility classes for common mobile patterns */
+.mobile-hidden {
+  display: none !important;
+}
+
+@media (min-width: 640px) {
+  .mobile-hidden {
+    display: block !important;
+  }
+}
+
+.mobile-only {
+  display: block !important;
+}
+
+@media (min-width: 640px) {
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+/* Safe area handling for notched devices */
+@supports (padding: max(0px)) {
+  .safe-area-inset {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+
+  .safe-area-inset-top {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+  }
+
+  .safe-area-inset-bottom {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Focus improvements for accessibility */
+.focus-visible:focus-visible {
+  outline: 2px solid var(--primary) !important;
+  outline-offset: 2px !important;
+  border-radius: 0.25rem !important;
+}
+
+/* Loading and skeleton improvements */
+.skeleton-mobile {
+  animation: skeleton-loading 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-color: hsl(var(--muted));
+  }
+  100% {
+    background-color: hsl(var(--muted) / 0.5);
+  }
+}

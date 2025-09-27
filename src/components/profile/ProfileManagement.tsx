@@ -46,6 +46,9 @@ import {
   BookOpen
 } from "lucide-react";
 import Image from "next/image";
+import { getInitials, getAvatarColor, validateImageFile, compressImage } from "@/lib/avatar-utils";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 const profileFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -78,6 +81,8 @@ export default function ProfileManagement() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -99,42 +104,76 @@ export default function ProfileManagement() {
     },
   });
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      if (file.type.startsWith("image/")) {
-        if (file.size > 5 * 1024 * 1024) {
-          toast({
-            title: "File too large",
-            description: "Please select an image smaller than 5MB.",
-            variant: "destructive",
-          });
-          return;
-        }
+    if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setUploadedImage(e.target?.result as string);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        toast({
-          title: "Invalid file type",
-          description: "Please select a valid image file.",
-          variant: "destructive",
-        });
-      }
+    // Validate file using our utility
+    const validation = validateImageFile(file);
+    if (!validation.isValid) {
+      toast({
+        title: "Invalid file",
+        description: validation.error,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsImageLoading(true);
+
+    try {
+      // Compress image for better performance
+      const compressedImage = await compressImage(file, 500); // 500KB max
+      setUploadedImage(compressedImage);
+
+      toast({
+        title: "Image uploaded",
+        description: "Image uploaded successfully. Click 'Save Image' to apply changes.",
+      });
+    } catch (error) {
+      console.error('Image compression failed:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to process image. Please try again with a different image.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsImageLoading(false);
     }
   };
 
-  const onProfileSubmit = (data: ProfileFormValues) => {
-    // Here you would typically update the user profile in your backend
-    console.log("Profile update:", data);
-    toast({
-      title: "Profile Updated",
-      description: "Your profile has been successfully updated.",
-    });
-    setIsEditingProfile(false);
+  const onProfileSubmit = async (data: ProfileFormValues) => {
+    if (!user?.id) return;
+
+    setIsSaving(true);
+    try {
+      // Update user profile in Firestore
+      const userRef = doc(db, "users", user.id);
+      await updateDoc(userRef, {
+        name: data.name,
+        email: data.email,
+        username: data.username,
+        ...(user.role === "student" && {
+          registrationNumber: data.registrationNumber,
+          department: data.department,
+        })
+      });
+
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated.",
+      });
+      setIsEditingProfile(false);
+    } catch (error) {
+      console.error("Profile update failed:", error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const onPasswordSubmit = (data: PasswordFormValues) => {
@@ -146,6 +185,42 @@ export default function ProfileManagement() {
     });
     setIsPasswordDialogOpen(false);
     passwordForm.reset();
+  };
+
+  const saveProfileImage = async () => {
+    if (!user?.id || !uploadedImage) return;
+
+    setIsSaving(true);
+    try {
+      // Update user profile image in Firestore
+      const userRef = doc(db, "users", user.id);
+      await updateDoc(userRef, {
+        profilePicture: uploadedImage
+      });
+
+      toast({
+        title: "Profile Image Updated",
+        description: "Your profile image has been successfully saved.",
+      });
+
+      // Clear the uploaded image state since it's now saved
+      setUploadedImage(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+
+      // Force a page refresh to show the updated image
+      window.location.reload();
+    } catch (error) {
+      console.error("Image save failed:", error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save profile image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const removeProfileImage = () => {
@@ -185,26 +260,32 @@ export default function ProfileManagement() {
             <div className="relative">
               <Avatar className="w-24 h-24 sm:w-32 sm:h-32">
                 <AvatarImage
-                  src={uploadedImage || user.avatarUrl}
+                  src={uploadedImage || user.profilePicture || user.avatarUrl}
                   alt={user.name}
                   className="object-cover"
                 />
-                <AvatarFallback className="text-2xl sm:text-3xl font-semibold">
-                  {user.name?.charAt(0) || "U"}
+                <AvatarFallback className={`text-xl sm:text-2xl font-semibold text-white ${getAvatarColor(user.name || 'User')}`}>
+                  {getInitials(user.name || 'User')}
                 </AvatarFallback>
               </Avatar>
               <Button
                 size="sm"
                 variant="outline"
-                className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0"
+                className="absolute -bottom-2 -right-2 rounded-full w-10 h-10 sm:w-8 sm:h-8 p-0 touch-manipulation"
                 onClick={() => fileInputRef.current?.click()}
+                disabled={isImageLoading}
               >
-                <Camera className="h-4 w-4" />
+                {isImageLoading ? (
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Camera className="h-4 w-4" />
+                )}
               </Button>
               <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                capture="environment"
                 onChange={handleImageUpload}
                 className="hidden"
               />
@@ -258,6 +339,7 @@ export default function ProfileManagement() {
               <Button
                 variant="outline"
                 size="sm"
+                className="min-h-[44px] min-w-[44px] touch-manipulation"
                 onClick={() => setIsEditingProfile(!isEditingProfile)}
               >
                 {isEditingProfile ? (
@@ -352,9 +434,22 @@ export default function ProfileManagement() {
                     </>
                   )}
 
-                  <Button type="submit" className="w-full">
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Changes
+                  <Button
+                    type="submit"
+                    className="w-full min-h-[44px] touch-manipulation"
+                    disabled={isSaving}
+                  >
+                    {isSaving ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </>
+                    )}
                   </Button>
                 </form>
               </Form>
@@ -422,7 +517,7 @@ export default function ProfileManagement() {
               </div>
               <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline">
+                  <Button variant="outline" className="min-h-[44px] touch-manipulation">
                     Change
                   </Button>
                 </DialogTrigger>
@@ -532,15 +627,19 @@ export default function ProfileManagement() {
                         )}
                       />
 
-                      <DialogFooter>
+                      <DialogFooter className="flex-col sm:flex-row gap-2">
                         <Button
                           type="button"
                           variant="outline"
+                          className="min-h-[44px] touch-manipulation w-full sm:w-auto"
                           onClick={() => setIsPasswordDialogOpen(false)}
                         >
                           Cancel
                         </Button>
-                        <Button type="submit">
+                        <Button
+                          type="submit"
+                          className="min-h-[44px] touch-manipulation w-full sm:w-auto"
+                        >
                           Update Password
                         </Button>
                       </DialogFooter>
@@ -589,11 +688,31 @@ export default function ProfileManagement() {
                 />
               </div>
               <div className="flex gap-2">
-                <Button size="sm">
-                  <Upload className="h-4 w-4 mr-2" />
-                  Save Image
+                <Button
+                  size="sm"
+                  className="min-h-[44px] touch-manipulation"
+                  onClick={saveProfileImage}
+                  disabled={isSaving}
+                >
+                  {isSaving ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Save Image
+                    </>
+                  )}
                 </Button>
-                <Button variant="outline" size="sm" onClick={removeProfileImage}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="min-h-[44px] touch-manipulation"
+                  onClick={removeProfileImage}
+                  disabled={isSaving}
+                >
                   <X className="h-4 w-4 mr-2" />
                   Remove
                 </Button>

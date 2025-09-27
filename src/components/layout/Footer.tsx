@@ -12,7 +12,7 @@ export function Footer() {
           {/* App info */}
           <div className="text-center">
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} LibroReserva. All rights reserved.
+              © {new Date().getFullYear()} Adustech Library. All rights reserved.
             </p>
           </div>
 
@@ -58,7 +58,7 @@ export function Footer() {
           {/* Left side - App info */}
           <div>
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} LibroReserva. All rights reserved.
+              © {new Date().getFullYear()} Adustech Library. All rights reserved.
             </p>
           </div>
 

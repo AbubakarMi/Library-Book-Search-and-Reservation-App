@@ -72,7 +72,7 @@ export default function DashboardSidebar({ userRole, onMobileMenuToggle }: Dashb
                 onClick={() => setIsMobileSidebarOpen(false)}
               >
                 <Book className="h-6 w-6 text-primary" />
-                <span>LibroReserva</span>
+                <span>Adustech</span>
               </Link>
               <button
                 onClick={() => setIsMobileSidebarOpen(false)}
@@ -134,7 +134,7 @@ export default function DashboardSidebar({ userRole, onMobileMenuToggle }: Dashb
             className: "group flex items-center gap-3 rounded-lg px-3 py-2 bg-primary text-primary-foreground font-semibold transition-all hover:bg-primary/90"
           },
             React.createElement(Book, { className: "h-5 w-5 transition-all group-hover:scale-110" }),
-            React.createElement("span", null, "LibroReserva")
+            React.createElement("span", null, "Adustech")
           ),
           ...navItems.map((item) =>
             React.createElement(Link, {

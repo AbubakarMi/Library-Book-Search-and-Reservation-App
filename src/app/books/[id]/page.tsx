@@ -181,7 +181,7 @@ export default function BookDetailPage({ params }: BookDetailPageProps) {
           </div>
           
           <p className="text-lg leading-relaxed">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+            This comprehensive academic resource is carefully curated by the Abubakar Tafawa Balewa University Bauchi Library to support student learning and research. Our collection focuses on providing quality educational materials that align with the university's academic programs and research initiatives.
           </p>
 
           <div className="grid grid-cols-2 gap-4 text-sm">

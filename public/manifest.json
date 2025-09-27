@@ -1,7 +1,7 @@
 {
-  "name": "LibroReserva - Library Management",
-  "short_name": "LibroReserva",
-  "description": "A comprehensive library book search and reservation application with offline support",
+  "name": "Adustech Library - Digital Library Management",
+  "short_name": "Adustech Library",
+  "description": "Aliko Dangote University Of Science and Technology Wudil - Digital Library Management System with offline support",
   "theme_color": "#2563eb",
   "background_color": "#ffffff",
   "display": "standalone",

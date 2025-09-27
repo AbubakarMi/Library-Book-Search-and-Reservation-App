@@ -20,31 +20,25 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Loader2, Upload, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { validateRegistrationNumber, getDepartmentFromRegNo, getDepartmentOptions } from "@/lib/registration-utils";
+import { validateImageFile, compressImage, getInitials, getAvatarColor } from "@/lib/avatar-utils";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Invalid email address." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
-  registrationNumber: z.string().min(3, { message: "Registration number must be at least 3 characters." }),
-  department: z.string().min(2, { message: "Department must be at least 2 characters." }),
+  registrationNumber: z.string().refine((val) => {
+    const validation = validateRegistrationNumber(val);
+    return validation.isValid;
+  }, {
+    message: "Invalid registration number format. Use: UG20/COMS/1168"
+  }),
+  department: z.string().min(2, { message: "Department is required." }),
   profilePicture: z.string().optional(),
 });
 
-const departments = [
-  "Computer Science",
-  "Information Technology",
-  "Engineering",
-  "Business Administration",
-  "English Literature",
-  "Mathematics",
-  "Physics",
-  "Chemistry",
-  "Biology",
-  "Psychology",
-  "Economics",
-  "History",
-  "Other"
-];
+// Get departments from the registration utils
+const departments = getDepartmentOptions();
 
 export function SignupForm() {
   const { signup } = useAuth();
@@ -53,6 +47,14 @@ export function SignupForm() {
   const [imageLoading, setImageLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
+
+  // Auto-detect department when registration number changes
+  const handleRegistrationNumberChange = (regNo: string) => {
+    const departmentInfo = getDepartmentFromRegNo(regNo);
+    if (departmentInfo) {
+      form.setValue('department', departmentInfo.code);
+    }
+  };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -118,32 +120,28 @@ export function SignupForm() {
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      setImageLoading(true);
-      try {
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-          setError('Please select a valid image file.');
-          return;
-        }
+    if (!file) return;
 
-        // Validate file size (max 5MB for upload)
-        if (file.size > 5 * 1024 * 1024) {
-          setError('Image file is too large. Please select an image smaller than 5MB.');
-          return;
-        }
+    // Validate file using our utility
+    const validation = validateImageFile(file);
+    if (!validation.isValid) {
+      setError(validation.error || 'Invalid image file');
+      return;
+    }
 
-        // Compress the image
-        const compressedImage = await compressImage(file, 80); // 80KB max
-        setProfileImagePreview(compressedImage);
-        form.setValue('profilePicture', compressedImage);
-        setError(null); // Clear any previous errors
-      } catch (error) {
-        console.error('Error processing image:', error);
-        setError('Failed to process image. Please try again.');
-      } finally {
-        setImageLoading(false);
-      }
+    setImageLoading(true);
+    setError(null);
+
+    try {
+      // Use improved compression for mobile compatibility
+      const compressedImage = await compressImage(file, 500); // 500KB max for better mobile support
+      setProfileImagePreview(compressedImage);
+      form.setValue('profilePicture', compressedImage);
+    } catch (error) {
+      console.error('Error processing image:', error);
+      setError('Failed to process image. Please try again with a different image.');
+    } finally {
+      setImageLoading(false);
     }
   };
 
@@ -162,7 +160,7 @@ export function SignupForm() {
       await signup(values.email, values.password, values.name, {
         registrationNumber: values.registrationNumber,
         department: values.department,
-        profilePicture: values.profilePicture || `https://i.pravatar.cc/150?u=${values.email}`
+        profilePicture: values.profilePicture || undefined // Don't set default avatar
       });
 
       console.log("Signup successful, redirecting to dashboard");
@@ -175,14 +173,14 @@ export function SignupForm() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Student Registration</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Create your student account to access the library system</p>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Student Registration</h2>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 px-2">Create your student account to access the library system</p>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
           {/* Profile Picture Upload */}
           <FormField
             control={form.control}
@@ -192,21 +190,27 @@ export function SignupForm() {
                 <FormLabel>Profile Picture</FormLabel>
                 <FormControl>
                   <div className="flex flex-col items-center space-y-4">
-                    <Avatar className="w-24 h-24 border-2 border-gray-200 dark:border-gray-700">
+                    <Avatar className="w-20 h-20 sm:w-24 sm:h-24 border-2 border-gray-200 dark:border-gray-700">
                       <AvatarImage src={profileImagePreview || undefined} />
-                      <AvatarFallback className="bg-gray-100 dark:bg-gray-800">
-                        <User className="w-8 h-8 text-gray-400" />
+                      <AvatarFallback className={`text-white text-lg ${getAvatarColor(form.watch('name') || 'User')}`}>
+                        {getInitials(form.watch('name') || 'User')}
                       </AvatarFallback>
                     </Avatar>
                     <div className="relative">
                       <Input
                         type="file"
                         accept="image/*"
+                        capture="environment"
                         onChange={handleImageUpload}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer touch-manipulation"
                         disabled={imageLoading}
                       />
-                      <Button type="button" variant="outline" className="flex items-center gap-2" disabled={imageLoading}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex items-center gap-2 h-10 px-4 text-sm touch-manipulation"
+                        disabled={imageLoading}
+                      >
                         {imageLoading ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
@@ -243,7 +247,14 @@ export function SignupForm() {
                 <FormItem>
                   <FormLabel>Registration Number</FormLabel>
                   <FormControl>
-                    <Input placeholder="REG2024001" {...field} />
+                    <Input
+                      placeholder="e.g., UG20/COMS/1168"
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        handleRegistrationNumberChange(e.target.value);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -271,16 +282,16 @@ export function SignupForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Department</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select your department" />
+                      <SelectValue placeholder="Select your department (auto-detected from reg no)" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     {departments.map((dept) => (
-                      <SelectItem key={dept} value={dept}>
-                        {dept}
+                      <SelectItem key={dept.value} value={dept.value}>
+                        {dept.label}
                       </SelectItem>
                     ))}
                   </SelectContent>

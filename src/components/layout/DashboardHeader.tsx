@@ -20,6 +20,7 @@ import {
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useNotifications } from "@/context/NotificationContext";
 import { OfflineIndicator } from "@/components/offline/OfflineIndicator";
+import { getInitials, getAvatarColor } from "@/lib/avatar-utils";
 import { Bell, Settings, LogOut, User, Shield } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -57,7 +58,7 @@ export default function DashboardHeader() {
       <div className="flex h-14 items-center justify-between px-4 lg:px-6">
         {/* Left side - Logo/Title for mobile */}
         <div className="sm:hidden">
-          <h1 className="text-lg font-semibold">LibroReserva</h1>
+          <h1 className="text-lg font-semibold">Adustech Library</h1>
         </div>
 
         {/* Spacer for desktop to push controls to the right */}
@@ -148,8 +149,8 @@ export default function DashboardHeader() {
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={user.profilePicture || user.avatarUrl} alt={user.name} />
-                  <AvatarFallback className="text-sm font-semibold">
-                    {user.name?.charAt(0) || "U"}
+                  <AvatarFallback className={`text-sm font-semibold text-white ${getAvatarColor(user.name || 'User')}`}>
+                    {getInitials(user.name || 'User')}
                   </AvatarFallback>
                 </Avatar>
               </Button>

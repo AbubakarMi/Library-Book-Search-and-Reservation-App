@@ -28,7 +28,7 @@ export interface NotificationEmailData {
 }
 
 class EmailService {
-  private fromEmail = 'noreply@libroreserva.com'; // Update with your verified domain
+  private fromEmail = 'noreply@adustechlibrary.com'; // Update with your verified domain
 
   async sendEmail({ to, subject, html, from }: EmailTemplate) {
     try {
@@ -59,7 +59,7 @@ class EmailService {
 
   private getEmailTemplate(data: NotificationEmailData): Omit<EmailTemplate, 'to'> {
     const { userName, bookTitle, notificationType, additionalData } = data;
-    const libraryName = additionalData?.libraryName || 'LibroReserva';
+    const libraryName = additionalData?.libraryName || 'Adustech Library';
 
     switch (notificationType) {
       case 'welcome':

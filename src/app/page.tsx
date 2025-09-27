@@ -76,37 +76,37 @@ function SearchResults() {
   const testimonials = [
     {
       id: 1,
-      name: "Sarah Johnson",
-      role: "Book Enthusiast & Blogger",
-      location: "New York, USA",
+      name: "Fatima Aliyu",
+      role: "Computer Science Student",
+      location: "Wudil, Kano State",
       avatar: "/api/placeholder/64/64",
-      content: "LibroReserva has completely revolutionized how I discover and reserve books. The AI-powered recommendations are spot on, and I've discovered so many hidden gems!",
+      content: "Adustech Library has completely transformed my research experience. The digital collection and easy reservation system has made accessing academic resources so much simpler!",
       rating: 5,
-      badge: "Power Reader",
+      badge: "Active Student",
       booksRead: 127,
       joinedMonths: 8,
-      favorite: "Fiction"
+      favorite: "Technology"
     },
     {
       id: 2,
-      name: "Dr. Michael Chen",
-      role: "University Professor",
-      location: "California, USA",
+      name: "Dr. Ibrahim Musa",
+      role: "Engineering Professor",
+      location: "Wudil, Kano State",
       avatar: "/api/placeholder/64/64",
-      content: "As an academic, the advanced search filters and research tools have been game-changing. My students love the collaborative features too!",
+      content: "As a faculty member at Aliko Dangote University, the advanced search and research tools have enhanced how I prepare course materials. Students can easily access recommended readings!",
       rating: 5,
-      badge: "Academic",
+      badge: "Faculty",
       booksRead: 89,
       joinedMonths: 6,
-      favorite: "Science"
+      favorite: "Engineering"
     },
     {
       id: 3,
-      name: "Emily Davis",
-      role: "Head Librarian",
-      location: "London, UK",
+      name: "Amina Hassan",
+      role: "Library Assistant",
+      location: "Wudil, Kano State",
       avatar: "/api/placeholder/64/64",
-      content: "The analytics dashboard has transformed how we manage our collection. We've seen 40% increase in book circulation since implementing LibroReserva!",
+      content: "The digital library management system has streamlined our operations significantly. Book tracking and student management is now efficient and user-friendly!",
       rating: 5,
       badge: "Library Pro",
       booksRead: 203,
@@ -217,15 +217,15 @@ function SearchResults() {
                 <div className="absolute inset-0 select-none pointer-events-none">
                   <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight font-headline opacity-5 blur-sm transform scale-110">
                     <span className="block">
-                      LibroReserva
+                      Adustech Library
                     </span>
                   </h1>
                 </div>
 
                 {/* Main Text with Ultra-Enhanced Typography */}
-                <h1 className="relative text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-ultra-tight font-display leading-ultra-tight transform hover:scale-105 transition-transform duration-700 text-shadow-lg animate-scale-in">
-                  <span className="block text-gradient-primary animate-gradient-shift bg-300% hover-wiggle cursor-pointer" data-text="LibroReserva">
-                    LibroReserva
+                <h1 className="relative text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-ultra-tight font-display leading-ultra-tight transform hover:scale-105 transition-transform duration-700 text-shadow-lg animate-scale-in">
+                  <span className="block text-gradient-primary animate-gradient-shift bg-300% hover-wiggle cursor-pointer" data-text="Adustech Library">
+                    Adustech Library
                   </span>
                   {/* Enhanced Animated Underline */}
                   <div className="h-3 w-32 bg-gradient-to-r from-primary via-blue-500 to-purple-500 mx-auto mt-6 rounded-full animate-pulse shadow-2xl glow-primary animate-text-reveal animate-morphing"></div>
@@ -233,18 +233,18 @@ function SearchResults() {
               </div>
 
               <div className="relative">
-                <div className="mx-auto max-w-[1000px] text-xl md:text-2xl lg:text-4xl leading-ultra-relaxed font-body text-gray-700 dark:text-gray-200 transform hover:scale-105 transition-all duration-500 text-shadow">
+                <div className="mx-auto max-w-[1000px] text-lg md:text-xl lg:text-2xl leading-ultra-relaxed font-body text-gray-700 dark:text-gray-200 transform hover:scale-105 transition-all duration-500 text-shadow">
                   <span className="font-light">
-                    Transform your reading experience with our
+                    Your gateway to academic excellence at
                   </span>
                   <span className="relative font-bold text-gradient-primary mx-2">
-                    intelligent library system
+                    Aliko Dangote University Of Science and Technology Wudil
                     <span className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-blue-600 animate-pulse rounded-full"></span>
                   </span>
                   <span className="font-light">.</span>
                   <br className="block" />
                   <span className="inline-block mt-4 font-light">
-                    Discover, reserve, and track books
+                    Access, reserve, and manage academic resources
                     <span className="relative">
                       <span className="font-bold text-gradient-accent ml-2">
                         like never before
@@ -447,7 +447,7 @@ function SearchResults() {
               <div className="relative mb-8">
                 <h2 className="text-5xl md:text-6xl lg:text-7xl font-black tracking-ultra-tight font-display mb-8 transform hover:scale-105 transition-transform duration-500 text-shadow-lg animate-flip-in">
                   <span className="text-gradient-secondary animate-gradient-shift bg-300% hover-wiggle cursor-pointer">
-                    Why Choose LibroReserva?
+                    Why Choose Adustech Library?
                   </span>
                   <div className="h-2 w-40 bg-gradient-to-r from-primary via-blue-500 to-purple-500 mx-auto mt-6 rounded-full animate-gradient-shift shadow-xl glow-gradient animate-text-reveal animate-morphing"></div>
                 </h2>
@@ -643,7 +643,7 @@ function SearchResults() {
                   thousands of satisfied readers
                 </span>
                 <span className="font-light">
-                  who have transformed their library experience with LibroReserva.
+                  who have transformed their library experience with Adustech Library.
                 </span>
               </p>
 

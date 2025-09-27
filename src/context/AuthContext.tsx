@@ -43,10 +43,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const adminUser = {
           id: "admin-001",
           name: "Library Admin",
-          email: "admin@libroreserva.com",
+          email: "admin@adustech.edu.ng",
           username: "LibraryAdmin",
           role: "admin",
-          avatarUrl: "https://i.pravatar.cc/150?u=admin",
           createdAt: new Date()
         };
 
@@ -89,14 +88,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (emailOrUsername === "LibraryAdmin") {
         userDoc = await getDoc(doc(db, "users", "admin-001"));
       } else {
-        // Search for user by email or username
+        // Search for user by email, username, or registration number
         const usersRef = collection(db, "users");
         const emailQuery = query(usersRef, where("email", "==", emailOrUsername));
         const usernameQuery = query(usersRef, where("username", "==", emailOrUsername));
+        const regNoQuery = query(usersRef, where("registrationNumber", "==", emailOrUsername.toUpperCase()));
 
         let userSnapshot = await getDocs(emailQuery);
         if (userSnapshot.empty) {
           userSnapshot = await getDocs(usernameQuery);
+        }
+        if (userSnapshot.empty) {
+          userSnapshot = await getDocs(regNoQuery);
         }
 
         if (!userSnapshot.empty) {

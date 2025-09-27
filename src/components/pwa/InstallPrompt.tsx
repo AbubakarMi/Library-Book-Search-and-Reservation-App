@@ -52,7 +52,7 @@ export function InstallPrompt() {
       setDeferredPrompt(null);
       toast({
         title: "App Installed!",
-        description: "LibroReserva has been installed successfully",
+        description: "Adustech Library has been installed successfully",
         duration: 5000,
       });
     };
@@ -76,7 +76,7 @@ export function InstallPrompt() {
       if (outcome === 'accepted') {
         toast({
           title: "Installing...",
-          description: "LibroReserva is being installed",
+          description: "Adustech Library is being installed",
           duration: 3000,
         });
       }
@@ -125,7 +125,7 @@ export function InstallPrompt() {
                 <Smartphone className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-sm">Install LibroReserva</CardTitle>
+                <CardTitle className="text-sm">Install Adustech Library</CardTitle>
                 <CardDescription className="text-xs">
                   Get the full app experience
                 </CardDescription>

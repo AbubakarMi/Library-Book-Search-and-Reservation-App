@@ -158,8 +158,8 @@ export function NotificationSettings() {
 
   const testNotification = () => {
     if (hasPermission) {
-      new Notification('LibroReserva Test', {
-        body: 'This is a test notification from LibroReserva.',
+      new Notification('Adustech Library Test', {
+        body: 'This is a test notification from Adustech Library.',
         icon: '/icons/icon-192x192.png',
         tag: 'test-notification'
       });
@@ -199,7 +199,7 @@ export function NotificationSettings() {
       <div>
         <h2 className="text-2xl font-bold">Notification Settings</h2>
         <p className="text-muted-foreground">
-          Manage how and when you receive notifications from LibroReserva.
+          Manage how and when you receive notifications from Adustech Library.
         </p>
       </div>
 

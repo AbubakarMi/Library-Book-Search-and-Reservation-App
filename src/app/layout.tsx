@@ -17,8 +17,8 @@ import { Footer } from '@/components/layout/Footer';
 import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
-  title: 'LibroReserva',
-  description: 'A Library Book Search and Reservation Application',
+  title: 'Adustech Library',
+  description: 'Aliko Dangote University Of Science and Technology Wudil - Library Management System',
 };
 
 export default function RootLayout({
@@ -39,8 +39,8 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="LibroReserva" />
-        <meta name="application-name" content="LibroReserva" />
+        <meta name="apple-mobile-web-app-title" content="Adustech Library" />
+        <meta name="application-name" content="Adustech Library" />
 
         {/* Apple Touch Icons */}
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />

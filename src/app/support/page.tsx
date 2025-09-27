@@ -75,7 +75,7 @@ const faqs: FAQ[] = [
   {
     id: '8',
     question: 'Is there a mobile app?',
-    answer: 'Yes! You can install LibroReserva as a Progressive Web App (PWA) on your mobile device. Look for the "Install" prompt when visiting the site, or use the install option in your browser menu.',
+    answer: 'Yes! You can install Adustech Library as a Progressive Web App (PWA) on your mobile device. Look for the "Install" prompt when visiting the site, or use the install option in your browser menu.',
     category: 'technical',
     tags: ['mobile', 'app', 'pwa', 'install']
   }
@@ -139,7 +139,7 @@ export default function SupportPage() {
           </div>
           <h1 className="text-3xl font-bold">Support Center</h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Get help with LibroReserva. Find answers to common questions, report issues,
+            Get help with Adustech Library. Find answers to common questions, report issues,
             or contact our support team directly.
           </p>
         </div>
@@ -150,7 +150,7 @@ export default function SupportPage() {
             <CardHeader className="text-center">
               <BookOpen className="h-8 w-8 mx-auto text-blue-500 mb-2" />
               <CardTitle className="text-lg">Getting Started</CardTitle>
-              <CardDescription>New to LibroReserva? Learn the basics</CardDescription>
+              <CardDescription>New to Adustech Library? Learn the basics</CardDescription>
             </CardHeader>
             <CardContent className="text-center">
               <Button variant="outline" className="w-full">
@@ -204,7 +204,7 @@ export default function SupportPage() {
               <CardHeader>
                 <CardTitle>Frequently Asked Questions</CardTitle>
                 <CardDescription>
-                  Find quick answers to the most common questions about LibroReserva.
+                  Find quick answers to the most common questions about Adustech Library.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
