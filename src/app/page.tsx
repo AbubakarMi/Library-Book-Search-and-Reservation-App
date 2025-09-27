@@ -24,6 +24,20 @@ import { placeholderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
 import Link from "next/link";
 
+function SearchParamsHandler() {
+  const { searchTerm, setSearchTerm } = useSearch();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const urlSearch = searchParams.get('search');
+    if (urlSearch && urlSearch !== searchTerm) {
+      setSearchTerm(urlSearch);
+    }
+  }, [searchParams, searchTerm, setSearchTerm]);
+
+  return null;
+}
+
 function SearchResults() {
   const {
     searchTerm,
@@ -35,15 +49,6 @@ function SearchResults() {
     setCurrentPage,
     booksPerPage
   } = useSearch();
-
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    const urlSearch = searchParams.get('search');
-    if (urlSearch && urlSearch !== searchTerm) {
-      setSearchTerm(urlSearch);
-    }
-  }, [searchParams, searchTerm, setSearchTerm]);
 
   // Get featured books (highest rated or most popular)
   const featuredBooks = books.slice(0, 6);
@@ -981,8 +986,9 @@ export default function Home() {
           </div>
         </div>
       }>
-        <SearchResults />
+        <SearchParamsHandler />
       </Suspense>
+      <SearchResults />
     </SearchProvider>
   );
 }
