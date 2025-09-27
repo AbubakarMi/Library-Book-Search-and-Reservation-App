@@ -40,7 +40,7 @@ const faqs: FAQ[] = [
   {
     id: '3',
     question: 'What happens if I return a book late?',
-    answer: 'Late fees apply for overdue books. The fee is $0.50 per day for students and $1.00 per day for faculty/staff. If a book is more than 30 days overdue, your account may be suspended.',
+    answer: 'Late fees apply for overdue books. The fee is ₦50 per day for students and ₦100 per day for faculty/staff. If a book is more than 30 days overdue, your account may be suspended.',
     category: 'borrowing',
     tags: ['late fees', 'overdue', 'suspension']
   },

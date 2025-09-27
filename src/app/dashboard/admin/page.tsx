@@ -160,9 +160,11 @@ export default function AdminDashboardPage() {
                 <Activity className="w-4 h-4 mr-1" />
                 Live Data
               </Badge>
-              <Button className="gap-2">
-                <Download className="h-4 w-4" />
-                Export Report
+              <Button className="gap-2" asChild>
+                <Link href="/dashboard/admin/reports?tab=export">
+                  <Download className="h-4 w-4" />
+                  Enhanced Export
+                </Link>
               </Button>
             </div>
           </div>

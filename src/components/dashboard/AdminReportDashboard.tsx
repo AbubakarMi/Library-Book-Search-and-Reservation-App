@@ -40,10 +40,15 @@ import {
 } from 'lucide-react';
 import { books, users, reservations, borrowingRecords, bookCategories } from '@/lib/mock-data';
 import ReportGenerator from './ReportGenerator';
+import { ExportReport } from './ExportReport';
 
-export default function AdminReportDashboard() {
+interface AdminReportDashboardProps {
+  defaultTab?: string;
+}
+
+export default function AdminReportDashboard({ defaultTab = 'overview' }: AdminReportDashboardProps) {
   const [dateRange, setDateRange] = useState('30d');
-  const [reportType, setReportType] = useState('overview');
+  const [reportType, setReportType] = useState(defaultTab);
 
   // Calculate statistics
   const totalBooks = books.length;
@@ -165,9 +170,9 @@ export default function AdminReportDashboard() {
             </SelectContent>
           </Select>
 
-          <Button onClick={() => exportReport('comprehensive')} variant="outline">
+          <Button onClick={() => setReportType('export')} variant="outline">
             <Download className="h-4 w-4 mr-2" />
-            Export Report
+            Enhanced Export
           </Button>
         </div>
       </div>
@@ -213,7 +218,7 @@ export default function AdminReportDashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalFines.toFixed(2)}</div>
+            <div className="text-2xl font-bold">₦{totalFines.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">collected</p>
           </CardContent>
         </Card>
@@ -221,11 +226,12 @@ export default function AdminReportDashboard() {
 
       {/* Report Tabs */}
       <Tabs defaultValue="overview" value={reportType} onValueChange={setReportType}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="books">Books</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="trends">Trends</TabsTrigger>
+          <TabsTrigger value="export">Export</TabsTrigger>
           <TabsTrigger value="ai-reports">AI Reports</TabsTrigger>
         </TabsList>
 
@@ -375,6 +381,10 @@ export default function AdminReportDashboard() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="export" className="space-y-6">
+          <ExportReport />
         </TabsContent>
 
         <TabsContent value="ai-reports">

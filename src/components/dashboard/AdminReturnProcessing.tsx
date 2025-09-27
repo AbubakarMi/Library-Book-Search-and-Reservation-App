@@ -129,7 +129,7 @@ export default function AdminReturnProcessing() {
       id: `notification-${Date.now()}`,
       type: 'success',
       title: 'Book Return Processed',
-      message: `Your return of "${book?.title || 'Unknown Book'}" has been processed successfully.${penalty > 0 ? ` Late fee: $${penalty.toFixed(2)}` : ''}`,
+      message: `Your return of "${book?.title || 'Unknown Book'}" has been processed successfully.${penalty > 0 ? ` Late fee: ₦${penalty.toFixed(2)}` : ''}`,
       read: false,
       createdAt: new Date().toISOString()
     });
