@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { BookFilters } from "@/components/books/BookFilters";
 import { BookCard } from "@/components/books/BookCard";
 import { SearchProvider, useSearch } from "@/context/SearchContext";
