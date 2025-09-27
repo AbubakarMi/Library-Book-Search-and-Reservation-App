@@ -26,14 +26,17 @@ import Link from "next/link";
 
 function SearchParamsHandler() {
   const { searchTerm, setSearchTerm } = useSearch();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const urlSearch = searchParams.get('search');
-    if (urlSearch && urlSearch !== searchTerm) {
-      setSearchTerm(urlSearch);
+    // Only run on client side
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlSearch = urlParams.get('search');
+      if (urlSearch && urlSearch !== searchTerm) {
+        setSearchTerm(urlSearch);
+      }
     }
-  }, [searchParams, searchTerm, setSearchTerm]);
+  }, [searchTerm, setSearchTerm]);
 
   return null;
 }
@@ -978,16 +981,7 @@ export default function Home() {
   return (
     <SearchProvider>
       <style jsx>{style}</style>
-      <Suspense fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="flex items-center gap-2">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <span>Loading...</span>
-          </div>
-        </div>
-      }>
-        <SearchParamsHandler />
-      </Suspense>
+      <SearchParamsHandler />
       <SearchResults />
     </SearchProvider>
   );
