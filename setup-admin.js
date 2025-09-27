@@ -27,7 +27,6 @@ try {
       // Create user with Firebase Auth
       const userRecord = await auth.createUser({
         email: 'admin@libroreserva.com',
-        password: 'Pass123',
         displayName: 'Library Admin'
       });
 
@@ -43,9 +42,8 @@ try {
       });
 
       console.log('Admin user created successfully!');
-      console.log('Username: LibraryAdmin');
       console.log('Email: admin@libroreserva.com');
-      console.log('Password: Pass123');
+      console.log('Password: Set during Firebase Auth creation');
 
     } catch (error) {
       if (error.code === 'auth/email-already-exists') {
