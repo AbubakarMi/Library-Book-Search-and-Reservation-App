@@ -1,10 +1,11 @@
 import { Resend } from 'resend';
 
-if (!process.env.RESEND_API_KEY) {
-  throw new Error('RESEND_API_KEY environment variable is required');
-}
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+const getResendClient = () => {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY environment variable is required');
+  }
+  return new Resend(process.env.RESEND_API_KEY);
+};
 
 export interface EmailTemplate {
   to: string;
@@ -31,6 +32,7 @@ class EmailService {
 
   async sendEmail({ to, subject, html, from }: EmailTemplate) {
     try {
+      const resend = getResendClient();
       const data = await resend.emails.send({
         from: from || this.fromEmail,
         to: [to],
