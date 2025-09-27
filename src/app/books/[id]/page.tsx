@@ -49,19 +49,73 @@ export default function BookDetailPage({ params }: BookDetailPageProps) {
 
     setIsReserving(true);
 
-    // Simulate database update and confirmation (following activity diagram)
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      // Create reservation record
+      const reservation = {
+        id: `res_${Date.now()}`,
+        userID: user.id,
+        bookID: book.id,
+        reservationDate: new Date().toISOString(),
+        status: 'pending'
+      };
 
-    // System Updates Database and Confirms
-    sendReservationNotification(book.title, 'confirmed');
-    addNotification({
-      id: `notification-${Date.now()}`,
-      type: 'success',
-      title: 'Reservation Confirmed!',
-      message: `You have successfully reserved "${book.title}". You'll be notified when it's ready for pickup.`,
-      read: false,
-      createdAt: new Date().toISOString()
-    });
+      // Save reservation to localStorage
+      const existingReservations = localStorage.getItem('reservations');
+      const reservations = existingReservations ? JSON.parse(existingReservations) : [];
+      reservations.push(reservation);
+      localStorage.setItem('reservations', JSON.stringify(reservations));
+
+      // Send notification to admins
+      const adminNotification = {
+        id: `admin_notif_${Date.now()}`,
+        type: 'info',
+        title: 'New Book Reservation',
+        message: `${user.name} has requested to reserve "${book.title}". Please review and approve/reject this reservation.`,
+        read: false,
+        timestamp: new Date().toISOString(),
+        reservationId: reservation.id,
+        bookTitle: book.title,
+        studentName: user.name,
+        studentEmail: user.email
+      };
+
+      // Send notification to all admin users
+      const existingUsers = localStorage.getItem('users');
+      const users = existingUsers ? JSON.parse(existingUsers) : [];
+      const adminUsers = users.filter((u: any) => u.role === 'admin');
+
+      adminUsers.forEach((admin: any) => {
+        const adminNotifications = localStorage.getItem(`notifications_${admin.id}`);
+        const notifications = adminNotifications ? JSON.parse(adminNotifications) : [];
+        notifications.push(adminNotification);
+        localStorage.setItem(`notifications_${admin.id}`, JSON.stringify(notifications));
+      });
+
+      // Send confirmation to student
+      addNotification({
+        id: `notification-${Date.now()}`,
+        type: 'success',
+        title: 'Reservation Submitted!',
+        message: `Your reservation request for "${book.title}" has been submitted and is pending admin approval. You'll be notified once it's approved.`,
+        read: false,
+        createdAt: new Date().toISOString()
+      });
+
+      // Dispatch event for real-time updates
+      window.dispatchEvent(new CustomEvent('reservationCreated', {
+        detail: { reservation, adminNotification }
+      }));
+
+    } catch (error) {
+      addNotification({
+        id: `notification-${Date.now()}`,
+        type: 'error',
+        title: 'Reservation Failed',
+        message: 'There was an error processing your reservation. Please try again.',
+        read: false,
+        createdAt: new Date().toISOString()
+      });
+    }
 
     setIsReserving(false);
     setShowReserveDialog(false);

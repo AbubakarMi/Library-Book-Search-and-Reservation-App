@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from 'react';
-import { reservations as initialReservations, books, users } from '@/lib/mock-data';
+import { useState, useEffect } from 'react';
+import { books } from '@/lib/mock-data';
+import { useAuth } from '@/hooks/useAuth';
+import { useNotifications } from '@/context/NotificationContext';
 import {
   Table,
   TableBody,
@@ -27,6 +29,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -38,52 +49,181 @@ import Image from 'next/image';
 import { placeholderImages } from '@/lib/placeholder-images';
 
 export default function AdminReservationManagement() {
-  const [reservations, setReservations] = useState<Reservation[]>(initialReservations);
+  const { user } = useAuth();
+  const { addNotification } = useNotifications();
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [actionType, setActionType] = useState<'approve' | 'reject' | 'complete' | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+
+  useEffect(() => {
+    loadReservations();
+  }, []);
+
+  const loadReservations = () => {
+    const storedReservations = localStorage.getItem('reservations');
+    if (storedReservations) {
+      const parsedReservations = JSON.parse(storedReservations);
+      setReservations(parsedReservations);
+    }
+  };
+
+  const getUserById = (userId: string) => {
+    const storedUsers = localStorage.getItem('users');
+    if (storedUsers) {
+      const users = JSON.parse(storedUsers);
+      return users.find((u: any) => u.id === userId);
+    }
+    return null;
+  };
 
   const pendingReservations = reservations.filter(r => r.status === 'pending');
-  const activeReservations = reservations.filter(r => r.status === 'ready');
-  const completedReservations = reservations.filter(r => r.status === 'completed' || r.status === 'cancelled');
+  const activeReservations = reservations.filter(r => r.status === 'approved' || r.status === 'ready');
+  const completedReservations = reservations.filter(r => r.status === 'completed' || r.status === 'cancelled' || r.status === 'rejected');
 
   const handleAction = (reservation: Reservation, action: 'approve' | 'reject' | 'complete') => {
     setSelectedReservation(reservation);
     setActionType(action);
   };
 
-  const confirmAction = () => {
-    if (!selectedReservation || !actionType) return;
+  const confirmAction = async () => {
+    if (!selectedReservation || !actionType || !user) return;
 
-    setReservations(reservations.map(r => {
-      if (r.id === selectedReservation.id) {
-        switch (actionType) {
-          case 'approve':
-            return { ...r, status: 'ready' as const };
-          case 'reject':
-            return { ...r, status: 'cancelled' as const };
-          case 'complete':
-            return { ...r, status: 'completed' as const };
-          default:
-            return r;
-        }
+    try {
+      const student = getUserById(selectedReservation.userID);
+      const book = books.find(b => b.id === selectedReservation.bookID);
+
+      let updatedReservation;
+      let studentNotification;
+
+      switch (actionType) {
+        case 'approve':
+          updatedReservation = {
+            ...selectedReservation,
+            status: 'approved' as const,
+            adminID: user.id,
+            approvalDate: new Date().toISOString(),
+            pickupDate: new Date().toISOString(),
+            expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+          };
+          studentNotification = {
+            id: `approval_${Date.now()}`,
+            type: 'success',
+            title: 'Reservation Approved',
+            message: `Your reservation for "${book?.title}" has been approved! Please pick up your book within 7 days.`,
+            read: false,
+            timestamp: new Date().toISOString()
+          };
+          break;
+
+        case 'reject':
+          if (!rejectionReason.trim()) {
+            addNotification({
+              id: `error_${Date.now()}`,
+              type: 'error',
+              title: 'Rejection Reason Required',
+              message: 'Please provide a reason for rejection.',
+              read: false,
+              createdAt: new Date().toISOString()
+            });
+            return;
+          }
+          updatedReservation = {
+            ...selectedReservation,
+            status: 'rejected' as const,
+            adminID: user.id,
+            approvalDate: new Date().toISOString(),
+            rejectionReason
+          };
+          studentNotification = {
+            id: `rejection_${Date.now()}`,
+            type: 'error',
+            title: 'Reservation Rejected',
+            message: `Your reservation for "${book?.title}" has been rejected. Reason: ${rejectionReason}`,
+            read: false,
+            timestamp: new Date().toISOString()
+          };
+          break;
+
+        case 'complete':
+          updatedReservation = {
+            ...selectedReservation,
+            status: 'completed' as const
+          };
+          studentNotification = {
+            id: `borrowed_${Date.now()}`,
+            type: 'info',
+            title: 'Book Borrowed',
+            message: `You have successfully borrowed "${book?.title}". Please return it by the due date.`,
+            read: false,
+            timestamp: new Date().toISOString()
+          };
+          break;
+
+        default:
+          return;
       }
-      return r;
-    }));
+
+      // Update reservations
+      const updatedReservations = reservations.map(r =>
+        r.id === selectedReservation.id ? updatedReservation : r
+      );
+      setReservations(updatedReservations);
+      localStorage.setItem('reservations', JSON.stringify(updatedReservations));
+
+      // Send notification to student
+      if (student && studentNotification) {
+        const studentNotifications = localStorage.getItem(`notifications_${student.id}`);
+        const notifications = studentNotifications ? JSON.parse(studentNotifications) : [];
+        notifications.push(studentNotification);
+        localStorage.setItem(`notifications_${student.id}`, JSON.stringify(notifications));
+
+        // Dispatch event for real-time updates
+        window.dispatchEvent(new CustomEvent('notificationUpdate', {
+          detail: { userID: student.id, notification: studentNotification }
+        }));
+      }
+
+      // Show admin notification
+      addNotification({
+        id: `admin_${actionType}_${Date.now()}`,
+        type: actionType === 'reject' ? 'info' : 'success',
+        title: `Reservation ${actionType === 'approve' ? 'Approved' : actionType === 'reject' ? 'Rejected' : 'Completed'}`,
+        message: `Successfully ${actionType === 'approve' ? 'approved' : actionType === 'reject' ? 'rejected' : 'completed'} reservation for "${book?.title}"`,
+        read: false,
+        createdAt: new Date().toISOString()
+      });
+
+    } catch (error) {
+      addNotification({
+        id: `error_${Date.now()}`,
+        type: 'error',
+        title: 'Action Failed',
+        message: 'Failed to process reservation action. Please try again.',
+        read: false,
+        createdAt: new Date().toISOString()
+      });
+    }
 
     setSelectedReservation(null);
     setActionType(null);
+    setRejectionReason('');
   };
 
-  const getStatusBadgeVariant = (status: "pending" | "ready" | "completed" | "cancelled") => {
+  const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case "ready":
+      case "approved":
         return "bg-success hover:bg-success/80";
       case "pending":
         return "bg-warning text-warning-foreground hover:bg-warning/80";
       case "completed":
         return "bg-primary/20 text-primary-foreground hover:bg-primary/30";
       case "cancelled":
+      case "rejected":
         return "bg-destructive/80 hover:bg-destructive/90";
+      default:
+        return "bg-gray-500 hover:bg-gray-600";
     }
   };
 
@@ -120,7 +260,7 @@ export default function AdminReservationManagement() {
       <TableBody>
         {reservations.map(reservation => {
           const book = books.find(b => b.id === reservation.bookID);
-          const user = users.find(u => u.id === reservation.userID);
+          const reservationUser = getUserById(reservation.userID);
           const coverImage = placeholderImages.find(p => p.id === book?.coverImageId) || placeholderImages[0];
 
           return (
@@ -142,8 +282,8 @@ export default function AdminReservationManagement() {
               </TableCell>
               <TableCell>
                 <div>
-                  <div className="font-medium">{user?.name || 'Unknown User'}</div>
-                  <div className="text-sm text-muted-foreground">{user?.email || 'Unknown Email'}</div>
+                  <div className="font-medium">{reservationUser?.name || 'Unknown User'}</div>
+                  <div className="text-sm text-muted-foreground">{reservationUser?.email || 'Unknown Email'}</div>
                 </div>
               </TableCell>
               <TableCell>{reservation.reservationDate}</TableCell>
@@ -294,9 +434,9 @@ export default function AdminReservationManagement() {
         </CardContent>
       </Card>
 
-      {/* Confirmation Dialog */}
+      {/* Approval/Complete Confirmation Dialog */}
       <AlertDialog
-        open={selectedReservation !== null && actionType !== null}
+        open={selectedReservation !== null && (actionType === 'approve' || actionType === 'complete')}
         onOpenChange={() => {
           setSelectedReservation(null);
           setActionType(null);
@@ -306,15 +446,11 @@ export default function AdminReservationManagement() {
           <AlertDialogHeader>
             <AlertDialogTitle>
               {actionType === 'approve' && 'Approve Reservation'}
-              {actionType === 'reject' && 'Reject Reservation'}
               {actionType === 'complete' && 'Mark as Borrowed'}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {actionType === 'approve' &&
                 'This will approve the reservation and notify the user that their book is ready for pickup.'
-              }
-              {actionType === 'reject' &&
-                'This will reject the reservation request. The user will be notified.'
               }
               {actionType === 'complete' &&
                 'This will mark the book as borrowed by the user.'
@@ -327,17 +463,61 @@ export default function AdminReservationManagement() {
               onClick={confirmAction}
               className={cn(
                 actionType === 'approve' && 'bg-green-600 hover:bg-green-700',
-                actionType === 'reject' && 'bg-red-600 hover:bg-red-700',
                 actionType === 'complete' && 'bg-blue-600 hover:bg-blue-700'
               )}
             >
               {actionType === 'approve' && 'Approve'}
-              {actionType === 'reject' && 'Reject'}
               {actionType === 'complete' && 'Mark as Borrowed'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Rejection Dialog with Reason */}
+      <Dialog
+        open={selectedReservation !== null && actionType === 'reject'}
+        onOpenChange={() => {
+          setSelectedReservation(null);
+          setActionType(null);
+          setRejectionReason('');
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Reservation</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for rejecting this reservation. The student will be notified with this reason.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Textarea
+              placeholder="Enter rejection reason..."
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSelectedReservation(null);
+                setActionType(null);
+                setRejectionReason('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmAction}
+              disabled={!rejectionReason.trim()}
+            >
+              Reject Reservation
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

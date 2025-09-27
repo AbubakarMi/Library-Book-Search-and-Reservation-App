@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Book, FileText, Settings, Users, Calendar, ArrowLeft, BookOpen, UserCircle, Search, Library, TrendingUp } from "lucide-react";
+import { Book, FileText, Settings, Users, Calendar, ArrowLeft, BookOpen, UserCircle, Search, Library, TrendingUp, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -14,6 +14,7 @@ import {
 
 interface DashboardSidebarProps {
   userRole: "admin" | "staff" | "student";
+  onMobileMenuToggle?: () => void;
 }
 
 const getCommonNavItems = (userRole: "admin" | "staff" | "student") => [];
@@ -42,11 +43,88 @@ const getBottomNavItems = (userRole: "admin" | "staff" | "student") => [
   { href: "#", label: "Settings", icon: Settings }
 ];
 
-export default function DashboardSidebar({ userRole }: DashboardSidebarProps) {
+export default function DashboardSidebar({ userRole, onMobileMenuToggle }: DashboardSidebarProps) {
   const pathname = usePathname();
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = React.useState(false);
   const commonNavItems = getCommonNavItems(userRole);
   const navItems = userRole === "admin" ? [...commonNavItems, ...adminNavItems] : [...commonNavItems, ...userNavItems];
   const bottomNavItems = getBottomNavItems(userRole);
+
+  const MobileSidebar = () => (
+    React.createElement("div", {
+      className: cn(
+        "md:hidden fixed inset-0 z-50 transition-transform duration-300 ease-in-out",
+        isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+      )
+    },
+      // Backdrop
+      React.createElement("div", {
+        className: "absolute inset-0 bg-black/50",
+        onClick: () => setIsMobileSidebarOpen(false)
+      }),
+      // Sidebar
+      React.createElement("div", {
+        className: "relative w-64 h-full bg-background border-r shadow-xl"
+      },
+        React.createElement("div", {
+          className: "flex flex-col h-full"
+        },
+          // Header with close button
+          React.createElement("div", {
+            className: "flex items-center justify-between p-4 border-b"
+          },
+            React.createElement(Link, {
+              href: "/dashboard",
+              className: "flex items-center gap-3 font-semibold text-lg",
+              onClick: () => setIsMobileSidebarOpen(false)
+            },
+              React.createElement(Book, { className: "h-6 w-6 text-primary" }),
+              React.createElement("span", null, "LibroReserva")
+            ),
+            React.createElement("button", {
+              onClick: () => setIsMobileSidebarOpen(false),
+              className: "p-2 rounded-lg hover:bg-accent"
+            },
+              React.createElement(X, { className: "h-5 w-5" })
+            )
+          ),
+          // Navigation items
+          React.createElement("nav", {
+            className: "flex-1 flex flex-col gap-2 p-4"
+          },
+            ...navItems.map((item) =>
+              React.createElement(Link, {
+                key: item.href,
+                href: item.href,
+                className: cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground hover:bg-accent",
+                  pathname === item.href && "bg-accent text-accent-foreground"
+                ),
+                onClick: () => setIsMobileSidebarOpen(false)
+              },
+                React.createElement(item.icon, { className: "h-5 w-5" }),
+                React.createElement("span", null, item.label)
+              )
+            ),
+            ...bottomNavItems.map((item) =>
+              React.createElement(Link, {
+                key: item.href,
+                href: item.href,
+                className: cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground hover:bg-accent",
+                  pathname === item.href && "bg-accent text-accent-foreground"
+                ),
+                onClick: () => setIsMobileSidebarOpen(false)
+              },
+                React.createElement(item.icon, { className: "h-5 w-5" }),
+                React.createElement("span", null, item.label)
+              )
+            )
+          )
+        )
+      )
+    )
+  );
 
   const MobileNavigation = () => (
     React.createElement("div", {
@@ -133,7 +211,15 @@ export default function DashboardSidebar({ userRole }: DashboardSidebarProps) {
   );
 
   return React.createElement("div", { className: "navigation-wrapper" },
+    React.createElement(MobileSidebar),
     React.createElement(MobileNavigation),
-    React.createElement(DesktopSidebar)
+    React.createElement(DesktopSidebar),
+    // Mobile menu button - positioned absolutely
+    React.createElement("button", {
+      className: "md:hidden fixed top-4 left-4 z-40 p-2 rounded-lg bg-background border shadow-lg hover:bg-accent",
+      onClick: () => setIsMobileSidebarOpen(true)
+    },
+      React.createElement(Menu, { className: "h-5 w-5" })
+    )
   );
 }

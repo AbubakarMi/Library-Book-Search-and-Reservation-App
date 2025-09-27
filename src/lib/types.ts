@@ -32,7 +32,12 @@ export type Reservation = {
   userID: string;
   bookID: string;
   reservationDate: string;
-  status: "pending" | "ready" | "completed" | "cancelled";
+  status: "pending" | "approved" | "rejected" | "ready" | "completed" | "cancelled";
+  adminID?: string;
+  approvalDate?: string;
+  rejectionReason?: string;
+  pickupDate?: string;
+  expiryDate?: string;
 };
 
 export type BorrowingRecord = {
