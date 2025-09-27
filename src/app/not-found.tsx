@@ -31,11 +31,13 @@ export default function NotFound() {
                 Go to Homepage
               </Link>
             </Button>
-            <Button variant="outline" asChild className="w-full">
-              <button onClick={() => typeof window !== 'undefined' && window.history.back()}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Go Back
-              </button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => typeof window !== 'undefined' && window.history.back()}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Go Back
             </Button>
           </div>
         </CardContent>

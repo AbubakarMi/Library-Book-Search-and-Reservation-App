@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
+
+export const dynamic = 'force-dynamic';
 import { AuthProvider } from '@/context/AuthContext';
 import { NotificationProvider } from '@/context/NotificationContext';
 import { ThemeProvider } from '@/context/ThemeContext';

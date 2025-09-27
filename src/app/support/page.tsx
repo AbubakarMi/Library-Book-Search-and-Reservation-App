@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState } from 'react';
 import { HelpCircle, Mail, Phone, MessageCircle, Search, BookOpen, AlertCircle, Clock, ChevronDown, ChevronRight, Send } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
