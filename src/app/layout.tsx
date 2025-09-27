@@ -3,6 +3,7 @@ import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { NotificationProvider } from '@/context/NotificationContext';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { OfflineProvider } from '@/context/OfflineContext';
 import { Toaster } from '@/components/ui/toaster';
 import { ConditionalHeader } from '@/components/layout/ConditionalHeader';
 import { ConditionalBackButton } from '@/components/layout/ConditionalBackButton';
@@ -11,6 +12,7 @@ import { RealTimeNotificationsHandler } from '@/components/notifications/RealTim
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import { InstallPrompt } from '@/components/pwa/InstallPrompt';
 import { ServiceWorkerRegistration } from '@/components/pwa/ServiceWorkerRegistration';
+import { OfflineBanner } from '@/components/offline/OfflineIndicator';
 import { Footer } from '@/components/layout/Footer';
 import { cn } from '@/lib/utils';
 
@@ -59,21 +61,24 @@ export default function RootLayout({
       <body className={cn('font-body antialiased', 'min-h-screen bg-background font-sans')}>
         <ErrorBoundary showDetails={false}>
           <ThemeProvider>
-            <AuthProvider>
-              <NotificationProvider>
-                <div className="relative flex min-h-screen flex-col">
-                  <ConditionalHeader />
-                  <ConditionalBackButton />
-                  <main className="flex-1">{children}</main>
-                  <Footer />
-                  <FloatingSearchButton />
-                  <RealTimeNotificationsHandler />
-                  <InstallPrompt />
-                  <ServiceWorkerRegistration />
-                </div>
-                <Toaster />
-              </NotificationProvider>
-            </AuthProvider>
+            <OfflineProvider>
+              <AuthProvider>
+                <NotificationProvider>
+                  <div className="relative flex min-h-screen flex-col">
+                    <OfflineBanner />
+                    <ConditionalHeader />
+                    <ConditionalBackButton />
+                    <main className="flex-1">{children}</main>
+                    <Footer />
+                    <FloatingSearchButton />
+                    <RealTimeNotificationsHandler />
+                    <InstallPrompt />
+                    <ServiceWorkerRegistration />
+                  </div>
+                  <Toaster />
+                </NotificationProvider>
+              </AuthProvider>
+            </OfflineProvider>
           </ThemeProvider>
         </ErrorBoundary>
       </body>

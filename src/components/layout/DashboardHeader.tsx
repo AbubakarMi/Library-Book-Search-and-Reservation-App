@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useNotifications } from "@/context/NotificationContext";
+import { OfflineIndicator } from "@/components/offline/OfflineIndicator";
 import { Bell, Settings, LogOut, User, Shield } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -64,6 +65,9 @@ export default function DashboardHeader() {
 
         {/* Right side - User controls */}
         <div className="flex items-center gap-3 ml-auto">
+          {/* Offline Indicator */}
+          <OfflineIndicator showFullStatus={false} />
+
           {/* Theme Toggle */}
           <ThemeToggle />
 

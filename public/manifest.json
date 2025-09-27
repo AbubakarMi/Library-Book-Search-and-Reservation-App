@@ -1,13 +1,15 @@
 {
   "name": "LibroReserva - Library Management",
   "short_name": "LibroReserva",
-  "description": "A comprehensive library book search and reservation application",
+  "description": "A comprehensive library book search and reservation application with offline support",
   "theme_color": "#2563eb",
   "background_color": "#ffffff",
   "display": "standalone",
   "scope": "/",
   "start_url": "/",
   "orientation": "portrait-primary",
+  "cache_mode": "network_fallback",
+  "offline_enabled": true,
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
