@@ -7,7 +7,8 @@ export function ServiceWorkerRegistration() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+    // Enable service worker in both development and production
+    if ('serviceWorker' in navigator) {
       registerServiceWorker();
     }
   }, []);
