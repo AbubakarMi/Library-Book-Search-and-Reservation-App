@@ -41,7 +41,7 @@ export default function DashboardLayout({
           <DashboardHeader />
           <main className="flex-1 overflow-hidden">
             <div className="h-full overflow-y-auto">
-              <div className="p-4 md:p-6 lg:p-8 bg-muted/40 min-h-full pb-20 sm:pb-4">
+              <div className="p-4 md:p-6 lg:p-8 bg-muted/40 min-h-full">
                 {children}
               </div>
             </div>

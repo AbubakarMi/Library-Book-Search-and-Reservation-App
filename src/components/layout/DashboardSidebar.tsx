@@ -120,43 +120,6 @@ export default function DashboardSidebar({ userRole, onMobileMenuToggle }: Dashb
     );
   };
 
-  const MobileNavigation = () => (
-    React.createElement("div", {
-      className: "md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t"
-    },
-      React.createElement("div", {
-        className: "flex items-center justify-around p-2"
-      },
-        ...navItems.slice(0, 4).map((item) =>
-          React.createElement(Link, {
-            key: item.href,
-            href: item.href,
-            className: cn(
-              "flex flex-col items-center gap-1 p-2 rounded-lg text-xs transition-colors",
-              pathname === item.href
-                ? "text-primary bg-primary/10"
-                : "text-muted-foreground hover:text-foreground"
-            )
-          },
-            React.createElement(item.icon, { className: "h-5 w-5" }),
-            React.createElement("span", { className: "text-xs truncate max-w-[60px]" }, item.label)
-          )
-        ),
-        React.createElement(Link, {
-          href: bottomNavItems[0].href,
-          className: cn(
-            "flex flex-col items-center gap-1 p-2 rounded-lg text-xs transition-colors",
-            pathname === bottomNavItems[0].href
-              ? "text-primary bg-primary/10"
-              : "text-muted-foreground hover:text-foreground"
-          )
-        },
-          React.createElement(bottomNavItems[0].icon, { className: "h-5 w-5" }),
-          React.createElement("span", { className: "text-xs" }, "Profile")
-        )
-      )
-    )
-  );
 
   const DesktopSidebar = () => (
     React.createElement("aside", {
@@ -207,7 +170,6 @@ export default function DashboardSidebar({ userRole, onMobileMenuToggle }: Dashb
   return (
     <div className="navigation-wrapper">
       <MobileSidebar />
-      {React.createElement(MobileNavigation)}
       {React.createElement(DesktopSidebar)}
 
       {/* Mobile menu button */}

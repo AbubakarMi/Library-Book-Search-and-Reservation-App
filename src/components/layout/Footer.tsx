@@ -7,9 +7,56 @@ export function Footer() {
   return (
     <footer className="bg-background border-t mt-auto">
       <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+        {/* Mobile Layout */}
+        <div className="md:hidden space-y-4">
+          {/* App info */}
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">
+              © {new Date().getFullYear()} LibroReserva. All rights reserved.
+            </p>
+          </div>
+
+          {/* Links */}
+          <div className="flex justify-center items-center space-x-4 text-sm">
+            <Link
+              href="/privacy"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Privacy
+            </Link>
+            <Link
+              href="/terms"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Terms
+            </Link>
+            <Link
+              href="/support"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Support
+            </Link>
+          </div>
+
+          {/* Powered by Nubenta */}
+          <div className="text-center">
+            <Link
+              href="https://nubenta-group.vercel.app/technology"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center space-x-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <span>Powered by</span>
+              <span className="font-semibold text-primary">Nubenta Technology Limited</span>
+              <ExternalLink className="h-3 w-3" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Desktop Layout */}
+        <div className="hidden md:flex items-center justify-between">
           {/* Left side - App info */}
-          <div className="text-center md:text-left">
+          <div>
             <p className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} LibroReserva. All rights reserved.
             </p>
@@ -38,7 +85,7 @@ export function Footer() {
           </div>
 
           {/* Right side - Powered by Nubenta */}
-          <div className="text-center md:text-right">
+          <div>
             <Link
               href="https://nubenta-group.vercel.app/technology"
               target="_blank"
@@ -48,22 +95,6 @@ export function Footer() {
               <span>Powered by</span>
               <span className="font-semibold text-primary">Nubenta Technology Limited</span>
               <ExternalLink className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Mobile - Stacked layout for small screens */}
-        <div className="md:hidden pt-4 border-t mt-4">
-          <div className="text-center">
-            <Link
-              href="https://nubenta-group.vercel.app/technology"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center space-x-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <span>Powered by</span>
-              <span className="font-semibold text-primary">Nubenta Technology Limited</span>
-              <ExternalLink className="h-3 w-3" />
             </Link>
           </div>
         </div>
