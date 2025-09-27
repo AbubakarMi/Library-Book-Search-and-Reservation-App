@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = 'force-dynamic';
 
 import { useEffect, useState } from 'react';
 import { WifiOff, RefreshCw, Home, Book } from 'lucide-react';
@@ -10,6 +11,8 @@ export default function OfflinePage() {
   const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
@@ -25,7 +28,7 @@ export default function OfflinePage() {
   }, []);
 
   const handleRetry = () => {
-    if (isOnline) {
+    if (isOnline && typeof window !== 'undefined') {
       window.location.reload();
     }
   };

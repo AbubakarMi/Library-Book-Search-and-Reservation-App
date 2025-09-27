@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import AdminBorrowingConfirmation from "@/components/dashboard/AdminBorrowingConfirmation";
 
 export default function AdminBorrowingPage() {

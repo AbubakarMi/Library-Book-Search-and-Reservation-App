@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import UserReturnRequest from "@/components/dashboard/UserReturnRequest";
 
 export default function UserReturnsPage() {

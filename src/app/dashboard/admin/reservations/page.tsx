@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import AdminReservationManagement from "@/components/dashboard/AdminReservationManagement";
 
 export default function AdminReservationsPage() {

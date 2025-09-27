@@ -1,5 +1,4 @@
 "use client";
-
 export const dynamic = 'force-dynamic';
 
 import { BookFilters } from "@/components/books/BookFilters";
@@ -122,7 +121,9 @@ function SearchResults() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const showSearchResults = searchTerm.length > 0 || filteredBooks.length < books.length;

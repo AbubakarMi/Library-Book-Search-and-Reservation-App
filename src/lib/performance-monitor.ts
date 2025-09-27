@@ -233,12 +233,29 @@ class PerformanceMonitor {
   }
 }
 
-// Singleton instance
-export const performanceMonitor = new PerformanceMonitor();
+// Lazy singleton instance
+let performanceMonitorInstance: PerformanceMonitor | null = null;
+
+export const performanceMonitor = {
+  getInstance(): PerformanceMonitor {
+    if (!performanceMonitorInstance && typeof window !== 'undefined') {
+      performanceMonitorInstance = new PerformanceMonitor();
+    }
+    return performanceMonitorInstance || ({} as PerformanceMonitor);
+  },
+
+  // Proxy methods for easier access
+  measureRenderTime: (componentName: string, startTime: number) =>
+    performanceMonitor.getInstance().measureRenderTime?.(componentName, startTime),
+  getMetrics: () => performanceMonitor.getInstance().getMetrics?.() || {},
+  measureMemoryUsage: () => performanceMonitor.getInstance().measureMemoryUsage?.(),
+  logPerformanceSummary: () => performanceMonitor.getInstance().logPerformanceSummary?.(),
+  disconnect: () => performanceMonitor.getInstance().disconnect?.()
+};
 
 // React Hook for performance monitoring
 export function usePerformanceMonitor(componentName: string) {
-  const startTime = performance.now();
+  const startTime = typeof window !== 'undefined' ? performance.now() : 0;
 
   return {
     measureRender: () => performanceMonitor.measureRenderTime(componentName, startTime),
@@ -267,42 +284,52 @@ export function withPerformanceMonitoring<T extends object>(
 export const performanceDebug = {
   // Log all performance entries
   logAllEntries() {
-    const entries = performance.getEntries();
-    console.table(entries);
+    if (typeof window !== 'undefined') {
+      const entries = performance.getEntries();
+      console.table(entries);
+    }
   },
 
   // Log resource timing
   logResourceTiming() {
-    const resources = performance.getEntriesByType('resource');
-    console.group('📁 Resource Loading Times');
-    resources.forEach((resource: PerformanceResourceTiming) => {
-      console.log(`${resource.name}: ${(resource.responseEnd - resource.startTime).toFixed(2)}ms`);
-    });
-    console.groupEnd();
+    if (typeof window !== 'undefined') {
+      const resources = performance.getEntriesByType('resource');
+      console.group('📁 Resource Loading Times');
+      resources.forEach((resource: PerformanceResourceTiming) => {
+        console.log(`${resource.name}: ${(resource.responseEnd - resource.startTime).toFixed(2)}ms`);
+      });
+      console.groupEnd();
+    }
   },
 
   // Clear performance data
   clearData() {
-    performance.clearMarks();
-    performance.clearMeasures();
-    performance.clearResourceTimings();
+    if (typeof window !== 'undefined') {
+      performance.clearMarks();
+      performance.clearMeasures();
+      performance.clearResourceTimings();
+    }
   },
 
   // Mark performance points
   mark(name: string) {
-    performance.mark(name);
+    if (typeof window !== 'undefined') {
+      performance.mark(name);
+    }
   },
 
   // Measure between marks
   measure(name: string, startMark: string, endMark: string) {
-    performance.measure(name, startMark, endMark);
-    const measure = performance.getEntriesByName(name)[0];
-    console.log(`⏱️ ${name}: ${measure.duration.toFixed(2)}ms`);
+    if (typeof window !== 'undefined') {
+      performance.measure(name, startMark, endMark);
+      const measure = performance.getEntriesByName(name)[0];
+      console.log(`⏱️ ${name}: ${measure.duration.toFixed(2)}ms`);
+    }
   }
 };
 
 // Export for global access
 if (typeof window !== 'undefined') {
-  (window as any).performanceMonitor = performanceMonitor;
+  (window as any).performanceMonitor = performanceMonitor.getInstance();
   (window as any).performanceDebug = performanceDebug;
 }

@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import AdminReturnProcessing from "@/components/dashboard/AdminReturnProcessing";
 
 export default function AdminReturnsPage() {

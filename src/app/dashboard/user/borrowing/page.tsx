@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import UserBorrowingRequest from "@/components/dashboard/UserBorrowingRequest";
 
 export default function UserBorrowingPage() {

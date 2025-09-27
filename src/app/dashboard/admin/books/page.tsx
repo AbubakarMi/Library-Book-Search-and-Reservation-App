@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import AdminBookManagement from "@/components/dashboard/AdminBookManagement";
 
 export default function AdminBooksPage() {
