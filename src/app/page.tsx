@@ -5,8 +5,7 @@ import { BookCard } from "@/components/books/BookCard";
 import { SearchProvider, useSearch } from "@/context/SearchContext";
 import { Input } from "@/components/ui/input";
 import { Search, Loader2, BookOpen, Users, Clock, Award, TrendingUp, ArrowRight, Star, Sparkles, Zap, Shield, Heart, Quote } from "lucide-react";
-import { useSearchParams } from "next/navigation";
-import { useEffect, Suspense } from "react";
+import { useEffect } from "react";
 import {
   Pagination,
   PaginationContent,
