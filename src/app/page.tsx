@@ -6,7 +6,7 @@ import { SearchProvider, useSearch } from "@/context/SearchContext";
 import { Input } from "@/components/ui/input";
 import { Search, Loader2, BookOpen, Users, Clock, Award, TrendingUp, ArrowRight, Star, Sparkles, Zap, Shield, Heart, Quote } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import {
   Pagination,
   PaginationContent,
@@ -973,7 +973,16 @@ export default function Home() {
   return (
     <SearchProvider>
       <style jsx>{style}</style>
-      <SearchResults />
+      <Suspense fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Loading...</span>
+          </div>
+        </div>
+      }>
+        <SearchResults />
+      </Suspense>
     </SearchProvider>
   );
 }
