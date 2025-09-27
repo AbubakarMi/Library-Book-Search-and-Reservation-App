@@ -88,55 +88,43 @@ export default function DashboardSidebar({ userRole }: DashboardSidebarProps) {
 
   const DesktopSidebar = () => (
     React.createElement("aside", {
-      className: "hidden w-16 flex-col border-r bg-background md:flex"
+      className: "hidden w-64 flex-col border-r bg-background md:flex"
     },
       React.createElement(TooltipProvider, null,
         React.createElement("nav", {
-          className: "flex flex-col items-center gap-2 px-2 py-4"
+          className: "flex flex-col gap-2 px-4 py-4"
         },
           React.createElement(Link, {
             href: "/dashboard",
-            className: "group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-8 md:w-8 md:text-base"
+            className: "group flex items-center gap-3 rounded-lg px-3 py-2 bg-primary text-primary-foreground font-semibold transition-all hover:bg-primary/90"
           },
-            React.createElement(Book, { className: "h-4 w-4 transition-all group-hover:scale-110" }),
-            React.createElement("span", { className: "sr-only" }, "LibroReserva")
+            React.createElement(Book, { className: "h-5 w-5 transition-all group-hover:scale-110" }),
+            React.createElement("span", null, "LibroReserva")
           ),
           ...navItems.map((item) =>
-            React.createElement(Tooltip, { key: item.href },
-              React.createElement(TooltipTrigger, { asChild: true },
-                React.createElement(Link, {
-                  href: item.href,
-                  className: cn(
-                    "flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8",
-                    pathname === item.href && "bg-accent text-accent-foreground"
-                  )
-                },
-                  React.createElement(item.icon, { className: "h-5 w-5" }),
-                  React.createElement("span", { className: "sr-only" }, item.label)
-                )
-              ),
-              React.createElement(TooltipContent, { side: "right" }, item.label)
+            React.createElement(Link, {
+              key: item.href,
+              href: item.href,
+              className: cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground hover:bg-accent",
+                pathname === item.href && "bg-accent text-accent-foreground"
+              )
+            },
+              React.createElement(item.icon, { className: "h-5 w-5" }),
+              React.createElement("span", null, item.label)
             )
-          )
-        ),
-        React.createElement("nav", {
-          className: "mt-auto flex flex-col items-center gap-2 px-2 py-2"
-        },
+          ),
           ...bottomNavItems.map((item) =>
-            React.createElement(Tooltip, { key: item.href },
-              React.createElement(TooltipTrigger, { asChild: true },
-                React.createElement(Link, {
-                  href: item.href,
-                  className: cn(
-                    "flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8",
-                    pathname === item.href && "bg-accent text-accent-foreground"
-                  )
-                },
-                  React.createElement(item.icon, { className: "h-5 w-5" }),
-                  React.createElement("span", { className: "sr-only" }, item.label)
-                )
-              ),
-              React.createElement(TooltipContent, { side: "right" }, item.label)
+            React.createElement(Link, {
+              key: item.href,
+              href: item.href,
+              className: cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-foreground hover:bg-accent",
+                pathname === item.href && "bg-accent text-accent-foreground"
+              )
+            },
+              React.createElement(item.icon, { className: "h-5 w-5" }),
+              React.createElement("span", null, item.label)
             )
           )
         )
