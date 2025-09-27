@@ -106,6 +106,12 @@ export function LoginForm() {
               </FormItem>
             )}
           />
+          <div className="flex items-center justify-between">
+            <div></div>
+            <Link href="/forgot-password" className="text-sm text-muted-foreground hover:text-primary">
+              Forgot password?
+            </Link>
+          </div>
           {error && <p className="text-sm font-medium text-destructive">{error}</p>}
           <Button type="submit" className="w-full" disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
