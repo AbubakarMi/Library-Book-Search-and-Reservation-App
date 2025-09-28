@@ -41,8 +41,12 @@ export default function UserReservations() {
 
   // Filter reservations for current user
   const userReservations = reservations.filter(r => r.userID === user?.id);
-  const currentReservations = userReservations.filter(r => r.status === 'pending' || r.status === 'ready');
-  const pastReservations = userReservations.filter(r => r.status === 'completed' || r.status === 'cancelled');
+  const currentReservations = userReservations.filter(r =>
+    r.status === 'pending' || r.status === 'ready' || r.status === 'approved'
+  );
+  const pastReservations = userReservations.filter(r =>
+    r.status === 'completed' || r.status === 'cancelled' || r.status === 'rejected'
+  );
 
   const handleCancelReservation = async () => {
     if (!selectedReservation) return;
@@ -78,16 +82,20 @@ export default function UserReservations() {
     setShowCancelDialog(true);
   };
 
-  const getStatusBadgeVariant = (status: "pending" | "ready" | "completed" | "cancelled") => {
+  const getStatusBadgeVariant = (status: "pending" | "ready" | "completed" | "cancelled" | "approved" | "rejected") => {
     switch (status) {
       case "ready":
         return "bg-success hover:bg-success/80";
       case "pending":
         return "bg-warning text-warning-foreground hover:bg-warning/80";
+      case "approved":
+        return "bg-blue-500 hover:bg-blue-600";
       case "completed":
         return "bg-primary/20 text-primary-foreground hover:bg-primary/30";
       case "cancelled":
         return "bg-destructive/80 hover:bg-destructive/90";
+      case "rejected":
+        return "bg-red-500 hover:bg-red-600";
     }
   };
 
@@ -104,6 +112,7 @@ export default function UserReservations() {
           <TableHead>Book</TableHead>
           <TableHead>Reservation Date</TableHead>
           <TableHead>Status</TableHead>
+          <TableHead>Pickup Time</TableHead>
           {showActions && <TableHead>Actions</TableHead>}
         </TableRow>
       </TableHeader>
@@ -126,15 +135,35 @@ export default function UserReservations() {
               <TableCell>
                 <Badge className={cn("capitalize text-white flex items-center gap-1", getStatusBadgeVariant(reservation.status))}>
                   {reservation.status === 'pending' && <Clock className="h-3 w-3" />}
+                  {reservation.status === 'approved' && <CheckCircle className="h-3 w-3" />}
                   {reservation.status === 'ready' && <CheckCircle className="h-3 w-3" />}
                   {reservation.status === 'completed' && <CheckCircle className="h-3 w-3" />}
                   {reservation.status === 'cancelled' && <X className="h-3 w-3" />}
+                  {reservation.status === 'rejected' && <X className="h-3 w-3" />}
                   {reservation.status}
                 </Badge>
               </TableCell>
+              <TableCell>
+                {reservation.status === 'approved' && reservation.pickupDateTime ? (
+                  <div className="text-sm">
+                    <div className="font-medium text-blue-600">
+                      {new Date(reservation.pickupDateTime).toLocaleDateString()}
+                    </div>
+                    <div className="text-muted-foreground">
+                      {new Date(reservation.pickupDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                ) : reservation.status === 'ready' ? (
+                  <div className="text-sm text-green-600 font-medium">Ready for pickup</div>
+                ) : reservation.status === 'completed' ? (
+                  <div className="text-sm text-muted-foreground">Completed</div>
+                ) : (
+                  <div className="text-sm text-muted-foreground">-</div>
+                )}
+              </TableCell>
               {showActions && (
                 <TableCell>
-                  {(reservation.status === 'pending' || reservation.status === 'ready') && (
+                  {(reservation.status === 'pending' || reservation.status === 'ready' || reservation.status === 'approved') && (
                     <Button
                       variant="destructive"
                       size="sm"

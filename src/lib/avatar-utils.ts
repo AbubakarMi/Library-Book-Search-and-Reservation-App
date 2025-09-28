@@ -92,54 +92,104 @@ export function validateImageFile(file: File): { isValid: boolean; error?: strin
 }
 
 /**
- * Compress image file
+ * Compress image file with better mobile support
  */
 export function compressImage(file: File, maxSizeKB: number = 500): Promise<string> {
   return new Promise((resolve, reject) => {
+    // Check if we're on a browser that supports canvas
+    if (typeof document === 'undefined' || !document.createElement) {
+      // Fallback: just convert to base64 without compression
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+      return;
+    }
+
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const img = new Image();
 
+    // Add timeout for mobile devices
+    const timeout = setTimeout(() => {
+      reject(new Error('Image processing timeout'));
+    }, 10000);
+
     img.onload = () => {
-      // Calculate new dimensions to maintain aspect ratio
-      const maxWidth = 400;
-      const maxHeight = 400;
-      let { width, height } = img;
+      clearTimeout(timeout);
 
-      if (width > height) {
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width;
-          width = maxWidth;
+      try {
+        // Calculate new dimensions to maintain aspect ratio
+        const maxWidth = 300; // Reduced for mobile
+        const maxHeight = 300;
+        let { width, height } = img;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = (width * maxHeight) / height;
+            height = maxHeight;
+          }
         }
-      } else {
-        if (height > maxHeight) {
-          width = (width * maxHeight) / height;
-          height = maxHeight;
+
+        canvas.width = width;
+        canvas.height = height;
+
+        // Check if context is available
+        if (!ctx) {
+          throw new Error('Canvas context not available');
         }
+
+        // Draw and compress with error handling
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Start with moderate quality for mobile devices
+        let quality = 0.7;
+        let dataUrl: string;
+
+        try {
+          dataUrl = canvas.toDataURL('image/jpeg', quality);
+        } catch (error) {
+          // Fallback to PNG if JPEG fails
+          dataUrl = canvas.toDataURL('image/png');
+        }
+
+        // Reduce quality until we get under the target size (max 3 iterations for mobile)
+        let iterations = 0;
+        while (dataUrl.length > maxSizeKB * 1024 * 1.33 && quality > 0.3 && iterations < 3) {
+          quality -= 0.2;
+          try {
+            dataUrl = canvas.toDataURL('image/jpeg', quality);
+          } catch (error) {
+            break; // Stop if we can't compress further
+          }
+          iterations++;
+        }
+
+        // Clean up
+        URL.revokeObjectURL(img.src);
+        resolve(dataUrl);
+      } catch (error) {
+        clearTimeout(timeout);
+        reject(error);
       }
-
-      canvas.width = width;
-      canvas.height = height;
-
-      // Draw and compress
-      ctx?.drawImage(img, 0, 0, width, height);
-
-      // Start with high quality and reduce until size is acceptable
-      let quality = 0.9;
-      let dataUrl = canvas.toDataURL('image/jpeg', quality);
-
-      // Reduce quality until we get under the target size
-      while (dataUrl.length > maxSizeKB * 1024 * 1.33 && quality > 0.1) { // 1.33 accounts for base64 encoding overhead
-        quality -= 0.1;
-        dataUrl = canvas.toDataURL('image/jpeg', quality);
-      }
-
-      resolve(dataUrl);
     };
 
-    img.onerror = () => reject(new Error('Failed to load image'));
+    img.onerror = () => {
+      clearTimeout(timeout);
+      reject(new Error('Failed to load image'));
+    };
 
-    // Create object URL for the file
-    img.src = URL.createObjectURL(file);
+    // Create object URL for the file with error handling
+    try {
+      img.src = URL.createObjectURL(file);
+    } catch (error) {
+      clearTimeout(timeout);
+      reject(new Error('Failed to create object URL'));
+    }
   });
 }

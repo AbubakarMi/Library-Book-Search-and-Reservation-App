@@ -71,7 +71,7 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 
 export default function ProfileManagement() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -108,6 +108,9 @@ export default function ProfileManagement() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Reset input to allow same file selection again
+    event.target.value = '';
+
     // Validate file using our utility
     const validation = validateImageFile(file);
     if (!validation.isValid) {
@@ -122,8 +125,18 @@ export default function ProfileManagement() {
     setIsImageLoading(true);
 
     try {
+      // Show immediate feedback
+      toast({
+        title: "Processing image...",
+        description: "Please wait while we process your image.",
+      });
+
+      // For mobile devices, use smaller compression size
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const maxSize = isMobile ? 300 : 500; // Smaller size for mobile
+
       // Compress image for better performance
-      const compressedImage = await compressImage(file, 500); // 500KB max
+      const compressedImage = await compressImage(file, maxSize);
       setUploadedImage(compressedImage);
 
       toast({
@@ -132,11 +145,27 @@ export default function ProfileManagement() {
       });
     } catch (error) {
       console.error('Image compression failed:', error);
-      toast({
-        title: "Upload failed",
-        description: "Failed to process image. Please try again with a different image.",
-        variant: "destructive",
-      });
+
+      // Fallback: try without compression for mobile devices
+      try {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (e.target?.result) {
+            setUploadedImage(e.target.result as string);
+            toast({
+              title: "Image uploaded",
+              description: "Image uploaded successfully (uncompressed). Click 'Save Image' to apply changes.",
+            });
+          }
+        };
+        reader.readAsDataURL(file);
+      } catch (fallbackError) {
+        toast({
+          title: "Upload failed",
+          description: "Failed to process image. Please try a smaller image or different format.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsImageLoading(false);
     }
@@ -188,34 +217,55 @@ export default function ProfileManagement() {
   };
 
   const saveProfileImage = async () => {
-    if (!user?.id || !uploadedImage) return;
+    if (!user?.id || !uploadedImage) {
+      console.error("Save failed: Missing user ID or uploaded image", { userId: user?.id, hasUploadedImage: !!uploadedImage });
+      toast({
+        title: "Save Failed",
+        description: "No image to save or user not found.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsSaving(true);
     try {
+      console.log("Saving profile image for user:", user.id);
+
       // Update user profile image in Firestore
       const userRef = doc(db, "users", user.id);
       await updateDoc(userRef, {
-        profilePicture: uploadedImage
+        profilePicture: uploadedImage,
+        avatarUrl: uploadedImage, // Also update avatarUrl for compatibility
+        updatedAt: new Date().toISOString()
       });
+
+      console.log("Profile image saved successfully");
 
       toast({
         title: "Profile Image Updated",
         description: "Your profile image has been successfully saved.",
       });
 
+      // Refresh user data from Firestore
+      await refreshUser();
+
       // Clear the uploaded image state since it's now saved
       setUploadedImage(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-
-      // Force a page refresh to show the updated image
-      window.location.reload();
     } catch (error) {
       console.error("Image save failed:", error);
+
+      // More detailed error message
+      let errorMessage = "Failed to save profile image. Please try again.";
+      if (error instanceof Error) {
+        errorMessage = `Save failed: ${error.message}`;
+      }
+
       toast({
         title: "Save Failed",
-        description: "Failed to save profile image. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -256,22 +306,22 @@ export default function ProfileManagement() {
       {/* Profile Header */}
       <Card>
         <CardHeader className="pb-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
             <div className="relative">
-              <Avatar className="w-24 h-24 sm:w-32 sm:h-32">
+              <Avatar className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32">
                 <AvatarImage
                   src={uploadedImage || user.profilePicture || user.avatarUrl}
                   alt={user.name}
                   className="object-cover"
                 />
-                <AvatarFallback className={`text-xl sm:text-2xl font-semibold text-white ${getAvatarColor(user.name || 'User')}`}>
+                <AvatarFallback className={`text-lg sm:text-xl md:text-2xl font-semibold text-white ${getAvatarColor(user.name || 'User')}`}>
                   {getInitials(user.name || 'User')}
                 </AvatarFallback>
               </Avatar>
               <Button
                 size="sm"
                 variant="outline"
-                className="absolute -bottom-2 -right-2 rounded-full w-10 h-10 sm:w-8 sm:h-8 p-0 touch-manipulation"
+                className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 rounded-full w-10 h-10 p-0 touch-manipulation min-h-[44px] min-w-[44px]"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isImageLoading}
               >
@@ -284,40 +334,42 @@ export default function ProfileManagement() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/*,image/heic,image/heif"
                 capture="environment"
                 onChange={handleImageUpload}
                 className="hidden"
+                multiple={false}
+                style={{ position: 'absolute', left: '-9999px' }}
               />
             </div>
 
             <div className="flex-1 space-y-3">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold">{user.name}</h1>
-                <p className="text-muted-foreground">{user.email}</p>
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{user.name}</h1>
+                <p className="text-sm sm:text-base text-muted-foreground break-all">{user.email}</p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
-                <Badge className={`text-white ${getRoleBadgeColor(user.role)}`}>
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <Badge className={`text-white text-xs sm:text-sm ${getRoleBadgeColor(user.role)}`}>
                   <Shield className="w-3 h-3 mr-1" />
                   {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                 </Badge>
 
                 {user.role === "student" && user.registrationNumber && (
-                  <Badge variant="outline">
+                  <Badge variant="outline" className="text-xs sm:text-sm">
                     <GraduationCap className="w-3 h-3 mr-1" />
                     {user.registrationNumber}
                   </Badge>
                 )}
 
                 {user.role === "student" && user.department && (
-                  <Badge variant="outline">
+                  <Badge variant="outline" className="text-xs sm:text-sm">
                     <BookOpen className="w-3 h-3 mr-1" />
                     {user.department}
                   </Badge>
                 )}
 
-                <Badge variant="outline">
+                <Badge variant="outline" className="text-xs sm:text-sm">
                   <User className="w-3 h-3 mr-1" />
                   Active Account
                 </Badge>

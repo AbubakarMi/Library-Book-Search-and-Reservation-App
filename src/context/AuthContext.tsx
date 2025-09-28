@@ -18,6 +18,7 @@ interface AuthContextType {
   login: (emailOrUsername: string, pass: string) => Promise<void>;
   signup: (email: string, pass: string, name: string, studentInfo?: StudentInfo) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -245,6 +246,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refreshUser = async () => {
+    if (!user?.id) return;
+
+    try {
+      const userDocRef = doc(db, "users", user.id);
+      const userDoc = await getDoc(userDocRef);
+
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const updatedUser = {
+          ...user,
+          ...userData,
+          id: user.id
+        } as User;
+
+        setUser(updatedUser);
+        sessionStorage.setItem("library_user", JSON.stringify(updatedUser));
+      }
+    } catch (error) {
+      console.error("Failed to refresh user data:", error);
+    }
+  };
+
   const logout = () => {
     setUser(null);
     sessionStorage.removeItem("library_user");
@@ -257,6 +281,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     signup,
     logout,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

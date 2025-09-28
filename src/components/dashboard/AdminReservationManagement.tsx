@@ -38,6 +38,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -55,6 +57,7 @@ export default function AdminReservationManagement() {
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [actionType, setActionType] = useState<'approve' | 'reject' | 'complete' | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [pickupDateTime, setPickupDateTime] = useState('');
 
   useEffect(() => {
     loadReservations();
@@ -98,19 +101,43 @@ export default function AdminReservationManagement() {
 
       switch (actionType) {
         case 'approve':
+          if (!pickupDateTime) {
+            addNotification({
+              id: `error_${Date.now()}`,
+              type: 'error',
+              title: 'Pickup Time Required',
+              message: 'Please set a pickup time for the student.',
+              read: false,
+              createdAt: new Date().toISOString()
+            });
+            return;
+          }
+          const pickupDate = new Date(pickupDateTime);
+          const expiryDate = new Date(pickupDate.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days from pickup
+
           updatedReservation = {
             ...selectedReservation,
             status: 'approved' as const,
             adminID: user.id,
             approvalDate: new Date().toISOString(),
-            pickupDate: new Date().toISOString(),
-            expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+            pickupDate: pickupDate.toISOString(),
+            expiryDate: expiryDate.toISOString()
           };
+
+          const formattedPickupDate = pickupDate.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+
           studentNotification = {
             id: `approval_${Date.now()}`,
             type: 'success',
             title: 'Reservation Approved',
-            message: `Your reservation for "${book?.title}" has been approved! Please pick up your book within 7 days.`,
+            message: `Your reservation for "${book?.title}" has been approved! Please pick up your book by ${formattedPickupDate}. Available until ${expiryDate.toLocaleDateString()}.`,
             read: false,
             timestamp: new Date().toISOString()
           };
@@ -434,9 +461,65 @@ export default function AdminReservationManagement() {
         </CardContent>
       </Card>
 
-      {/* Approval/Complete Confirmation Dialog */}
+      {/* Approve Dialog with Pickup Time */}
+      <Dialog
+        open={selectedReservation !== null && actionType === 'approve'}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedReservation(null);
+            setActionType(null);
+            setPickupDateTime('');
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Approve Reservation</DialogTitle>
+            <DialogDescription>
+              Set a pickup time for the student and approve their reservation. They will be notified with the pickup details.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div>
+              <Label htmlFor="pickup-time">Pickup Date and Time</Label>
+              <Input
+                id="pickup-time"
+                type="datetime-local"
+                value={pickupDateTime}
+                onChange={(e) => setPickupDateTime(e.target.value)}
+                min={new Date().toISOString().slice(0, 16)}
+                className="mt-1"
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                Set when the student should pick up the book. Reservation expires 7 days after pickup date.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSelectedReservation(null);
+                setActionType(null);
+                setPickupDateTime('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmAction}
+              className="bg-green-600 hover:bg-green-700"
+              disabled={!pickupDateTime}
+            >
+              Approve Reservation
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Complete Dialog */}
       <AlertDialog
-        open={selectedReservation !== null && (actionType === 'approve' || actionType === 'complete')}
+        open={selectedReservation !== null && actionType === 'complete'}
         onOpenChange={() => {
           setSelectedReservation(null);
           setActionType(null);
@@ -444,30 +527,18 @@ export default function AdminReservationManagement() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {actionType === 'approve' && 'Approve Reservation'}
-              {actionType === 'complete' && 'Mark as Borrowed'}
-            </AlertDialogTitle>
+            <AlertDialogTitle>Mark as Borrowed</AlertDialogTitle>
             <AlertDialogDescription>
-              {actionType === 'approve' &&
-                'This will approve the reservation and notify the user that their book is ready for pickup.'
-              }
-              {actionType === 'complete' &&
-                'This will mark the book as borrowed by the user.'
-              }
+              This will mark the book as borrowed by the user.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmAction}
-              className={cn(
-                actionType === 'approve' && 'bg-green-600 hover:bg-green-700',
-                actionType === 'complete' && 'bg-blue-600 hover:bg-blue-700'
-              )}
+              className="bg-blue-600 hover:bg-blue-700"
             >
-              {actionType === 'approve' && 'Approve'}
-              {actionType === 'complete' && 'Mark as Borrowed'}
+              Mark as Borrowed
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
