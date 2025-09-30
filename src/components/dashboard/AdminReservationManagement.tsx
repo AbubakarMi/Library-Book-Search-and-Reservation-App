@@ -117,10 +117,11 @@ export default function AdminReservationManagement() {
 
           updatedReservation = {
             ...selectedReservation,
-            status: 'approved' as const,
+            status: 'ready' as const,
             adminID: user.id,
             approvalDate: new Date().toISOString(),
             pickupDate: pickupDate.toISOString(),
+            pickupDateTime: pickupDate.toISOString(),
             expiryDate: expiryDate.toISOString()
           };
 
@@ -136,8 +137,8 @@ export default function AdminReservationManagement() {
           studentNotification = {
             id: `approval_${Date.now()}`,
             type: 'success',
-            title: 'Reservation Approved',
-            message: `Your reservation for "${book?.title}" has been approved! Please pick up your book by ${formattedPickupDate}. Available until ${expiryDate.toLocaleDateString()}.`,
+            title: 'Book Ready for Pickup',
+            message: `Your reservation for "${book?.title}" has been approved and is ready for pickup! Please collect your book by ${formattedPickupDate}. Available until ${expiryDate.toLocaleDateString()}.`,
             read: false,
             timestamp: new Date().toISOString()
           };
@@ -215,8 +216,8 @@ export default function AdminReservationManagement() {
       addNotification({
         id: `admin_${actionType}_${Date.now()}`,
         type: actionType === 'reject' ? 'info' : 'success',
-        title: `Reservation ${actionType === 'approve' ? 'Approved' : actionType === 'reject' ? 'Rejected' : 'Completed'}`,
-        message: `Successfully ${actionType === 'approve' ? 'approved' : actionType === 'reject' ? 'rejected' : 'completed'} reservation for "${book?.title}"`,
+        title: `Reservation ${actionType === 'approve' ? 'Ready for Pickup' : actionType === 'reject' ? 'Rejected' : 'Completed'}`,
+        message: `Successfully ${actionType === 'approve' ? 'marked as ready for pickup' : actionType === 'reject' ? 'rejected' : 'completed'} reservation for "${book?.title}"`,
         read: false,
         createdAt: new Date().toISOString()
       });

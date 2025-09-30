@@ -68,59 +68,13 @@ export function SignupForm() {
     },
   });
 
-  const compressImage = (file: File, maxSizeKB: number = 100): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-
-      img.onload = () => {
-        // Calculate new dimensions to maintain aspect ratio
-        const maxWidth = 300;
-        const maxHeight = 300;
-        let { width, height } = img;
-
-        if (width > height) {
-          if (width > maxWidth) {
-            height = (height * maxWidth) / width;
-            width = maxWidth;
-          }
-        } else {
-          if (height > maxHeight) {
-            width = (width * maxHeight) / height;
-            height = maxHeight;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        // Draw and compress
-        ctx?.drawImage(img, 0, 0, width, height);
-
-        // Start with high quality and reduce until size is acceptable
-        let quality = 0.9;
-        let compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-
-        // Estimate size in KB (base64 is ~33% larger than binary)
-        const sizeKB = (compressedDataUrl.length * 0.75) / 1024;
-
-        if (sizeKB > maxSizeKB && quality > 0.1) {
-          quality = Math.max(0.1, quality * (maxSizeKB / sizeKB));
-          compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-        }
-
-        resolve(compressedDataUrl);
-      };
-
-      img.onerror = () => reject(new Error('Failed to load image'));
-      img.src = URL.createObjectURL(file);
-    });
-  };
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    // Reset input value to allow selecting the same file again
+    event.target.value = '';
 
     // Validate file using our utility
     const validation = validateImageFile(file);
@@ -133,13 +87,41 @@ export function SignupForm() {
     setError(null);
 
     try {
-      // Use improved compression for mobile compatibility
-      const compressedImage = await compressImage(file, 500); // 500KB max for better mobile support
+      // Detect if we're on mobile for better compression
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const maxSize = isMobile ? 300 : 500; // Smaller size for mobile devices
+
+      console.log('Processing image on mobile:', isMobile, 'max size:', maxSize);
+
+      // Use the improved compression function from avatar-utils
+      const compressedImage = await compressImage(file, maxSize);
       setProfileImagePreview(compressedImage);
       form.setValue('profilePicture', compressedImage);
+
+      console.log('Image processed successfully');
     } catch (error) {
       console.error('Error processing image:', error);
-      setError('Failed to process image. Please try again with a different image.');
+
+      // Fallback for mobile devices - just convert to base64 without compression
+      try {
+        console.log('Attempting fallback conversion...');
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (e.target?.result) {
+            const base64 = e.target.result as string;
+            setProfileImagePreview(base64);
+            form.setValue('profilePicture', base64);
+            console.log('Fallback conversion successful');
+          }
+        };
+        reader.onerror = () => {
+          setError('Failed to process image. Please try a smaller image or contact support.');
+        };
+        reader.readAsDataURL(file);
+      } catch (fallbackError) {
+        console.error('Fallback failed:', fallbackError);
+        setError('Failed to process image. Please try a smaller image or contact support.');
+      }
     } finally {
       setImageLoading(false);
     }
@@ -196,29 +178,41 @@ export function SignupForm() {
                         {getInitials(form.watch('name') || 'User')}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="relative">
-                      <Input
+                    <div className="relative inline-block">
+                      <input
                         type="file"
-                        accept="image/*"
+                        accept="image/*,image/heic,image/heif"
                         capture="environment"
                         onChange={handleImageUpload}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer touch-manipulation"
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                        style={{
+                          WebkitAppearance: 'none',
+                          appearance: 'none',
+                          fontSize: '16px' // Prevents zoom on iOS
+                        }}
                         disabled={imageLoading}
+                        id="profile-picture-upload"
                       />
                       <Button
                         type="button"
                         variant="outline"
-                        className="flex items-center gap-2 h-10 px-4 text-sm touch-manipulation"
+                        className="flex items-center gap-2 h-12 px-6 text-sm font-medium min-w-[140px] relative z-0 touch-manipulation select-none"
                         disabled={imageLoading}
+                        asChild
                       >
-                        {imageLoading ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Upload className="w-4 h-4" />
-                        )}
-                        {imageLoading ? 'Processing...' : 'Upload Photo'}
+                        <label htmlFor="profile-picture-upload" className="cursor-pointer flex items-center gap-2">
+                          {imageLoading ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Upload className="w-4 h-4" />
+                          )}
+                          {imageLoading ? 'Processing...' : 'Upload Photo'}
+                        </label>
                       </Button>
                     </div>
+                    {profileImagePreview && (
+                      <p className="text-xs text-green-600 text-center">✓ Photo uploaded successfully</p>
+                    )}
                   </div>
                 </FormControl>
                 <FormMessage />

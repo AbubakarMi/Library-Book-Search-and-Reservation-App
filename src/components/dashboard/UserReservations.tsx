@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { reservations as initialReservations, books } from '@/lib/mock-data';
 import {
   Table,
@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { cn } from '@/lib/utils';
-import { X, Calendar, Clock, CheckCircle } from 'lucide-react';
+import { X, Calendar, Clock, CheckCircle, PackageCheck } from 'lucide-react';
 import Image from 'next/image';
 import { placeholderImages } from '@/lib/placeholder-images';
 import { useAuth } from '@/hooks/useAuth';
@@ -35,32 +35,44 @@ import type { Reservation } from '@/lib/types';
 export default function UserReservations() {
   const { user } = useAuth();
   const { addNotification } = useNotifications();
-  const [reservations, setReservations] = useState(initialReservations);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showPickupDialog, setShowPickupDialog] = useState(false);
+
+  useEffect(() => {
+    loadReservations();
+  }, []);
+
+  const loadReservations = () => {
+    const storedReservations = localStorage.getItem('reservations');
+    if (storedReservations) {
+      setReservations(JSON.parse(storedReservations));
+    } else {
+      setReservations(initialReservations);
+    }
+  };
 
   // Filter reservations for current user
   const userReservations = reservations.filter(r => r.userID === user?.id);
   const currentReservations = userReservations.filter(r =>
-    r.status === 'pending' || r.status === 'ready' || r.status === 'approved'
+    r.status === 'pending' || r.status === 'ready' || r.status === 'approved' || r.status === 'picked_up'
   );
   const pastReservations = userReservations.filter(r =>
     r.status === 'completed' || r.status === 'cancelled' || r.status === 'rejected'
   );
 
   const handleCancelReservation = async () => {
-    if (!selectedReservation) return;
+    if (!selectedReservation || !user) return;
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    setReservations(prev =>
-      prev.map(r =>
-        r.id === selectedReservation.id
-          ? { ...r, status: 'cancelled' as const }
-          : r
-      )
+    const updatedReservations = reservations.map(r =>
+      r.id === selectedReservation.id
+        ? { ...r, status: 'cancelled' as const }
+        : r
     );
+
+    setReservations(updatedReservations);
+    localStorage.setItem('reservations', JSON.stringify(updatedReservations));
 
     const book = books.find(b => b.id === selectedReservation.bookID);
 
@@ -77,12 +89,80 @@ export default function UserReservations() {
     setSelectedReservation(null);
   };
 
+  const handlePickupBook = async () => {
+    if (!selectedReservation || !user) return;
+
+    const actualPickupDate = new Date();
+    const expectedReturnDate = new Date(actualPickupDate.getTime() + 14 * 24 * 60 * 60 * 1000); // 14 days from pickup
+
+    const updatedReservation = {
+      ...selectedReservation,
+      status: 'picked_up' as const,
+      actualPickupDate: actualPickupDate.toISOString(),
+      expectedReturnDate: expectedReturnDate.toISOString()
+    };
+
+    const updatedReservations = reservations.map(r =>
+      r.id === selectedReservation.id ? updatedReservation : r
+    );
+
+    setReservations(updatedReservations);
+    localStorage.setItem('reservations', JSON.stringify(updatedReservations));
+
+    const book = books.find(b => b.id === selectedReservation.bookID);
+
+    // Notify user
+    addNotification({
+      id: `pickup_${Date.now()}`,
+      type: 'success',
+      title: 'Book Picked Up',
+      message: `You have picked up "${book?.title}". Please return it by ${expectedReturnDate.toLocaleDateString()}.`,
+      read: false,
+      createdAt: new Date().toISOString()
+    });
+
+    // Notify admin
+    const adminUsers = localStorage.getItem('users');
+    if (adminUsers) {
+      const users = JSON.parse(adminUsers);
+      const admins = users.filter((u: any) => u.role === 'admin');
+
+      admins.forEach((admin: any) => {
+        const adminNotification = {
+          id: `admin_pickup_${Date.now()}_${admin.id}`,
+          type: 'info',
+          title: 'Book Picked Up',
+          message: `${user.name} picked up "${book?.title}". Expected return: ${expectedReturnDate.toLocaleDateString()}.`,
+          read: false,
+          timestamp: new Date().toISOString()
+        };
+
+        const adminNotifications = localStorage.getItem(`notifications_${admin.id}`);
+        const notifications = adminNotifications ? JSON.parse(adminNotifications) : [];
+        notifications.push(adminNotification);
+        localStorage.setItem(`notifications_${admin.id}`, JSON.stringify(notifications));
+
+        window.dispatchEvent(new CustomEvent('notificationUpdate', {
+          detail: { userID: admin.id, notification: adminNotification }
+        }));
+      });
+    }
+
+    setShowPickupDialog(false);
+    setSelectedReservation(null);
+  };
+
   const openCancelDialog = (reservation: Reservation) => {
     setSelectedReservation(reservation);
     setShowCancelDialog(true);
   };
 
-  const getStatusBadgeVariant = (status: "pending" | "ready" | "completed" | "cancelled" | "approved" | "rejected") => {
+  const openPickupDialog = (reservation: Reservation) => {
+    setSelectedReservation(reservation);
+    setShowPickupDialog(true);
+  };
+
+  const getStatusBadgeVariant = (status: "pending" | "ready" | "completed" | "cancelled" | "approved" | "rejected" | "picked_up") => {
     switch (status) {
       case "ready":
         return "bg-success hover:bg-success/80";
@@ -90,6 +170,8 @@ export default function UserReservations() {
         return "bg-warning text-warning-foreground hover:bg-warning/80";
       case "approved":
         return "bg-blue-500 hover:bg-blue-600";
+      case "picked_up":
+        return "bg-purple-500 hover:bg-purple-600";
       case "completed":
         return "bg-primary/20 text-primary-foreground hover:bg-primary/30";
       case "cancelled":
@@ -137,24 +219,30 @@ export default function UserReservations() {
                   {reservation.status === 'pending' && <Clock className="h-3 w-3" />}
                   {reservation.status === 'approved' && <CheckCircle className="h-3 w-3" />}
                   {reservation.status === 'ready' && <CheckCircle className="h-3 w-3" />}
+                  {reservation.status === 'picked_up' && <PackageCheck className="h-3 w-3" />}
                   {reservation.status === 'completed' && <CheckCircle className="h-3 w-3" />}
                   {reservation.status === 'cancelled' && <X className="h-3 w-3" />}
                   {reservation.status === 'rejected' && <X className="h-3 w-3" />}
-                  {reservation.status}
+                  {reservation.status === 'picked_up' ? 'Picked Up' : reservation.status}
                 </Badge>
               </TableCell>
               <TableCell>
-                {reservation.status === 'approved' && reservation.pickupDateTime ? (
+                {reservation.status === 'ready' && reservation.pickupDateTime ? (
                   <div className="text-sm">
-                    <div className="font-medium text-blue-600">
+                    <div className="font-medium text-green-600">
                       {new Date(reservation.pickupDateTime).toLocaleDateString()}
                     </div>
                     <div className="text-muted-foreground">
                       {new Date(reservation.pickupDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
-                ) : reservation.status === 'ready' ? (
-                  <div className="text-sm text-green-600 font-medium">Ready for pickup</div>
+                ) : reservation.status === 'picked_up' && reservation.expectedReturnDate ? (
+                  <div className="text-sm">
+                    <div className="font-medium text-purple-600">Return by:</div>
+                    <div className="text-muted-foreground">
+                      {new Date(reservation.expectedReturnDate).toLocaleDateString()}
+                    </div>
+                  </div>
                 ) : reservation.status === 'completed' ? (
                   <div className="text-sm text-muted-foreground">Completed</div>
                 ) : (
@@ -163,17 +251,30 @@ export default function UserReservations() {
               </TableCell>
               {showActions && (
                 <TableCell>
-                  {(reservation.status === 'pending' || reservation.status === 'ready' || reservation.status === 'approved') && (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => openCancelDialog(reservation)}
-                      className="h-8 px-3"
-                    >
-                      <X className="h-3 w-3 mr-1" />
-                      Cancel
-                    </Button>
-                  )}
+                  <div className="flex gap-2">
+                    {reservation.status === 'ready' && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => openPickupDialog(reservation)}
+                        className="h-8 px-3 bg-green-600 hover:bg-green-700"
+                      >
+                        <PackageCheck className="h-3 w-3 mr-1" />
+                        Pick Up
+                      </Button>
+                    )}
+                    {(reservation.status === 'pending' || reservation.status === 'ready' || reservation.status === 'approved') && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => openCancelDialog(reservation)}
+                        className="h-8 px-3"
+                      >
+                        <X className="h-3 w-3 mr-1" />
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               )}
             </TableRow>
@@ -231,6 +332,31 @@ export default function UserReservations() {
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleCancelReservation} className="bg-destructive hover:bg-destructive/90">
               Cancel Reservation
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Pickup Confirmation Dialog */}
+      <AlertDialog open={showPickupDialog} onOpenChange={setShowPickupDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Book Pickup</AlertDialogTitle>
+            <AlertDialogDescription>
+              You are about to pick up "{
+                selectedReservation ? books.find(b => b.id === selectedReservation.bookID)?.title || 'this book' : 'this book'
+              }". The book must be returned within 14 days. The admin will be notified of your pickup.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setSelectedReservation(null);
+              setShowPickupDialog(false);
+            }}>
+              Not Yet
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handlePickupBook} className="bg-green-600 hover:bg-green-700">
+              Confirm Pickup
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
