@@ -29,6 +29,7 @@ const userNavItems = [
 const adminNavItems = [
   { href: "/dashboard/admin/books", label: "Books", icon: Book },
   { href: "/dashboard/admin/reservations", label: "Reservations", icon: Calendar },
+  { href: "/dashboard/admin/pickup", label: "Picked Up", icon: PackageCheck },
   { href: "/dashboard/admin/borrowing", label: "Borrowing", icon: BookOpen },
   { href: "/dashboard/admin/returns", label: "Returns", icon: ArrowLeft },
   { href: "/dashboard/admin/users", label: "Users", icon: Users },
