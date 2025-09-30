@@ -199,6 +199,9 @@ export default function AdminReservationManagement() {
       setReservations(updatedReservations);
       localStorage.setItem('reservations', JSON.stringify(updatedReservations));
 
+      // Dispatch event for real-time updates across all components
+      window.dispatchEvent(new Event('reservationUpdate'));
+
       // Send notification to student
       if (student && studentNotification) {
         const studentNotifications = localStorage.getItem(`notifications_${student.id}`);

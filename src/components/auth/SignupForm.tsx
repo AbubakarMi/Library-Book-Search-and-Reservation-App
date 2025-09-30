@@ -13,15 +13,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { validateRegistrationNumber, getDepartmentFromRegNo, getDepartmentOptions } from "@/lib/registration-utils";
-import { getInitials, getAvatarColor } from "@/lib/avatar-utils";
+import { validateRegistrationNumber, getDepartmentFromRegNo } from "@/lib/registration-utils";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -36,9 +33,6 @@ const formSchema = z.object({
   department: z.string().min(2, { message: "Department is required." }),
 });
 
-// Get departments from the registration utils
-const departments = getDepartmentOptions();
-
 export function SignupForm() {
   const { signup } = useAuth();
   const router = useRouter();
@@ -49,7 +43,7 @@ export function SignupForm() {
   const handleRegistrationNumberChange = (regNo: string) => {
     const departmentInfo = getDepartmentFromRegNo(regNo);
     if (departmentInfo) {
-      form.setValue('department', departmentInfo.code);
+      form.setValue('department', departmentInfo.name);
     }
   };
 
@@ -85,21 +79,10 @@ export function SignupForm() {
     <div className="space-y-4 sm:space-y-6">
       <div className="text-center">
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Student Registration</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 px-2">Create your student account to access the library system</p>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
-          {/* Profile Avatar Preview */}
-          <div className="flex flex-col items-center space-y-2">
-            <Avatar className="w-20 h-20 sm:w-24 sm:h-24 border-2 border-gray-200 dark:border-gray-700">
-              <AvatarFallback className={`text-white text-lg ${getAvatarColor(form.watch('name') || 'User')}`}>
-                {getInitials(form.watch('name') || 'User')}
-              </AvatarFallback>
-            </Avatar>
-            <p className="text-xs text-muted-foreground text-center">Your profile icon will be generated from your name</p>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
@@ -156,20 +139,14 @@ export function SignupForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Department</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your department (auto-detected from reg no)" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {departments.map((dept) => (
-                      <SelectItem key={dept.value} value={dept.value}>
-                        {dept.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <Input
+                    {...field}
+                    readOnly
+                    placeholder="Auto-detected from registration number"
+                    className="bg-muted cursor-not-allowed"
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -195,7 +172,7 @@ export function SignupForm() {
           </Button>
         </form>
       </Form>
-      <div className="text-center text-sm text-muted-foreground">
+      <div className="text-center text-sm">
         Already have an account?{" "}
         <Link href="/login" className="font-medium text-primary hover:underline">
           Sign in

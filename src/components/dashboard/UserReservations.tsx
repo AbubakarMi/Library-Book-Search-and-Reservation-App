@@ -42,6 +42,19 @@ export default function UserReservations() {
 
   useEffect(() => {
     loadReservations();
+
+    // Listen for reservation updates
+    const handleReservationUpdate = () => {
+      loadReservations();
+    };
+
+    window.addEventListener('storage', handleReservationUpdate);
+    window.addEventListener('reservationUpdate', handleReservationUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleReservationUpdate);
+      window.removeEventListener('reservationUpdate', handleReservationUpdate);
+    };
   }, []);
 
   const loadReservations = () => {
@@ -108,6 +121,22 @@ export default function UserReservations() {
 
     setReservations(updatedReservations);
     localStorage.setItem('reservations', JSON.stringify(updatedReservations));
+
+    // Update book status to reserved
+    const storedBooks = localStorage.getItem('books');
+    if (storedBooks) {
+      const booksArray = JSON.parse(storedBooks);
+      const updatedBooks = booksArray.map((b: any) =>
+        b.id === selectedReservation.bookID
+          ? { ...b, availabilityStatus: 'reserved' }
+          : b
+      );
+      localStorage.setItem('books', JSON.stringify(updatedBooks));
+      window.dispatchEvent(new Event('bookUpdate'));
+    }
+
+    // Dispatch reservation update event
+    window.dispatchEvent(new Event('reservationUpdate'));
 
     const book = books.find(b => b.id === selectedReservation.bookID);
 
