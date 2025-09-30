@@ -60,8 +60,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }
   }, [notifications]);
 
-  // Listen for welcome notifications from signup
+  // Listen for welcome notifications from signup and real-time notification updates
   useEffect(() => {
+    const userId = sessionStorage.getItem('library_user') ? JSON.parse(sessionStorage.getItem('library_user')!).id : null;
+
     const handleNewNotification = (event: CustomEvent) => {
       const notificationData = event.detail;
       const newNotification: Notification = {
@@ -81,11 +83,48 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       });
     };
 
+    const handleNotificationUpdate = (event: CustomEvent) => {
+      const { userID } = event.detail;
+
+      // Only reload if this notification is for the current user
+      if (userId && userID === userId) {
+        const savedNotifications = localStorage.getItem(`notifications_${userId}`);
+        if (savedNotifications) {
+          try {
+            const parsed = JSON.parse(savedNotifications);
+            const latestNotification = parsed[parsed.length - 1];
+
+            // Add the latest notification to state
+            if (latestNotification && !notifications.find(n => n.id === latestNotification.id)) {
+              const newNotification: Notification = {
+                ...latestNotification,
+                timestamp: new Date(latestNotification.timestamp || new Date())
+              };
+
+              setNotifications(prev => [newNotification, ...prev]);
+
+              // Show toast notification
+              toast({
+                title: newNotification.title,
+                description: newNotification.message,
+                duration: 5000,
+              });
+            }
+          } catch (error) {
+            console.error('Error loading notification update:', error);
+          }
+        }
+      }
+    };
+
     window.addEventListener('newNotification', handleNewNotification as EventListener);
+    window.addEventListener('notificationUpdate', handleNotificationUpdate as EventListener);
+
     return () => {
       window.removeEventListener('newNotification', handleNewNotification as EventListener);
+      window.removeEventListener('notificationUpdate', handleNotificationUpdate as EventListener);
     };
-  }, [toast]);
+  }, [toast, notifications]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 

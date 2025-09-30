@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Book, FileText, Settings, Users, Calendar, ArrowLeft, BookOpen, UserCircle, Search, Library, TrendingUp, Menu, X } from "lucide-react";
+import { Book, FileText, Settings, Users, Calendar, ArrowLeft, BookOpen, UserCircle, Search, Library, TrendingUp, Menu, X, PackageCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -21,6 +21,7 @@ const getCommonNavItems = (userRole: "admin" | "staff" | "student") => [];
 
 const userNavItems = [
   { href: "/dashboard/user/bookmarks", label: "Browse Books", icon: Search },
+  { href: "/dashboard/user/pickup", label: "Pickup", icon: PackageCheck },
   { href: "/dashboard/user/borrowings", label: "My Books", icon: Library },
   { href: "/dashboard/user/returns", label: "Returns", icon: ArrowLeft },
 ];
