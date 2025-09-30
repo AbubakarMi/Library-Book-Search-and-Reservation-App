@@ -126,7 +126,7 @@ export function SignupForm() {
               <FormItem>
                 <FormLabel>Email Address</FormLabel>
                 <FormControl>
-                  <Input placeholder="you@example.com" {...field} />
+                  <Input placeholder="adutech@gmail.com" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -143,10 +143,13 @@ export function SignupForm() {
                   <Input
                     {...field}
                     readOnly
-                    placeholder="Auto-detected from registration number"
+                    placeholder="e.g., Computer Science"
                     className="bg-muted cursor-not-allowed"
                   />
                 </FormControl>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Auto-detected from registration number
+                </p>
                 <FormMessage />
               </FormItem>
             )}

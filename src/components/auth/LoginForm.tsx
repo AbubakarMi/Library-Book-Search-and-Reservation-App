@@ -63,6 +63,9 @@ export function LoginForm() {
 
   return (
     <div className="space-y-4">
+      <div className="text-center mb-6">
+        <p className="text-sm text-muted-foreground">Enter your credentials</p>
+      </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -72,7 +75,7 @@ export function LoginForm() {
               <FormItem>
                 <FormLabel>Email, Username, or Registration Number</FormLabel>
                 <FormControl>
-                  <Input placeholder="you@example.com, username, or UG20/COMS/1168" {...field} />
+                  <Input placeholder="adutech@gmail.com" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
