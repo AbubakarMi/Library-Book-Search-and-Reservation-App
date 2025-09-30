@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -32,21 +32,17 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import {
   User,
-  Camera,
   Lock,
-  Mail,
   Shield,
   Edit,
   Save,
   X,
-  Upload,
   Eye,
   EyeOff,
   GraduationCap,
   BookOpen
 } from "lucide-react";
-import Image from "next/image";
-import { getInitials, getAvatarColor, validateImageFile, compressImage } from "@/lib/avatar-utils";
+import { getInitials, getAvatarColor } from "@/lib/avatar-utils";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -73,15 +69,12 @@ type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 export default function ProfileManagement() {
   const { user, refreshUser } = useAuth();
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isImageLoading, setIsImageLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const profileForm = useForm<ProfileFormValues>({
@@ -103,73 +96,6 @@ export default function ProfileManagement() {
       confirmPassword: "",
     },
   });
-
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Reset input to allow same file selection again
-    event.target.value = '';
-
-    // Validate file using our utility
-    const validation = validateImageFile(file);
-    if (!validation.isValid) {
-      toast({
-        title: "Invalid file",
-        description: validation.error,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsImageLoading(true);
-
-    try {
-      // Show immediate feedback
-      toast({
-        title: "Processing image...",
-        description: "Please wait while we process your image.",
-      });
-
-      // For mobile devices, use smaller compression size
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      const maxSize = isMobile ? 300 : 500; // Smaller size for mobile
-
-      // Compress image for better performance
-      const compressedImage = await compressImage(file, maxSize);
-      setUploadedImage(compressedImage);
-
-      toast({
-        title: "Image uploaded",
-        description: "Image uploaded successfully. Click 'Save Image' to apply changes.",
-      });
-    } catch (error) {
-      console.error('Image compression failed:', error);
-
-      // Fallback: try without compression for mobile devices
-      try {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          if (e.target?.result) {
-            setUploadedImage(e.target.result as string);
-            toast({
-              title: "Image uploaded",
-              description: "Image uploaded successfully (uncompressed). Click 'Save Image' to apply changes.",
-            });
-          }
-        };
-        reader.readAsDataURL(file);
-      } catch (fallbackError) {
-        toast({
-          title: "Upload failed",
-          description: "Failed to process image. Please try a smaller image or different format.",
-          variant: "destructive",
-        });
-      }
-    } finally {
-      setIsImageLoading(false);
-    }
-  };
 
   const onProfileSubmit = async (data: ProfileFormValues) => {
     if (!user?.id) return;
@@ -216,70 +142,6 @@ export default function ProfileManagement() {
     passwordForm.reset();
   };
 
-  const saveProfileImage = async () => {
-    if (!user?.id || !uploadedImage) {
-      console.error("Save failed: Missing user ID or uploaded image", { userId: user?.id, hasUploadedImage: !!uploadedImage });
-      toast({
-        title: "Save Failed",
-        description: "No image to save or user not found.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      console.log("Saving profile image for user:", user.id);
-
-      // Update user profile image in Firestore
-      const userRef = doc(db, "users", user.id);
-      await updateDoc(userRef, {
-        profilePicture: uploadedImage,
-        avatarUrl: uploadedImage, // Also update avatarUrl for compatibility
-        updatedAt: new Date().toISOString()
-      });
-
-      console.log("Profile image saved successfully");
-
-      toast({
-        title: "Profile Image Updated",
-        description: "Your profile image has been successfully saved.",
-      });
-
-      // Refresh user data from Firestore
-      await refreshUser();
-
-      // Clear the uploaded image state since it's now saved
-      setUploadedImage(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    } catch (error) {
-      console.error("Image save failed:", error);
-
-      // More detailed error message
-      let errorMessage = "Failed to save profile image. Please try again.";
-      if (error instanceof Error) {
-        errorMessage = `Save failed: ${error.message}`;
-      }
-
-      toast({
-        title: "Save Failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const removeProfileImage = () => {
-    setUploadedImage(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
   if (!user) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -307,41 +169,11 @@ export default function ProfileManagement() {
       <Card>
         <CardHeader className="pb-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-            <div className="relative">
-              <Avatar className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32">
-                <AvatarImage
-                  src={uploadedImage || user.profilePicture || user.avatarUrl}
-                  alt={user.name}
-                  className="object-cover"
-                />
-                <AvatarFallback className={`text-lg sm:text-xl md:text-2xl font-semibold text-white ${getAvatarColor(user.name || 'User')}`}>
-                  {getInitials(user.name || 'User')}
-                </AvatarFallback>
-              </Avatar>
-              <Button
-                size="sm"
-                variant="outline"
-                className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 rounded-full w-10 h-10 p-0 touch-manipulation min-h-[44px] min-w-[44px]"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isImageLoading}
-              >
-                {isImageLoading ? (
-                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <Camera className="h-4 w-4" />
-                )}
-              </Button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*,image/heic,image/heif"
-                capture="environment"
-                onChange={handleImageUpload}
-                className="hidden"
-                multiple={false}
-                style={{ position: 'absolute', left: '-9999px' }}
-              />
-            </div>
+            <Avatar className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32">
+              <AvatarFallback className={`text-lg sm:text-xl md:text-2xl font-semibold text-white ${getAvatarColor(user.name || 'User')}`}>
+                {getInitials(user.name || 'User')}
+              </AvatarFallback>
+            </Avatar>
 
             <div className="flex-1 space-y-3">
               <div>
@@ -723,56 +555,6 @@ export default function ProfileManagement() {
           </CardContent>
         </Card>
       </div>
-
-      {uploadedImage && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Image Preview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4">
-              <div className="relative w-20 h-20">
-                <Image
-                  src={uploadedImage}
-                  alt="Profile preview"
-                  fill
-                  className="object-cover rounded-full"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  className="min-h-[44px] touch-manipulation"
-                  onClick={saveProfileImage}
-                  disabled={isSaving}
-                >
-                  {isSaving ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-4 w-4 mr-2" />
-                      Save Image
-                    </>
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="min-h-[44px] touch-manipulation"
-                  onClick={removeProfileImage}
-                  disabled={isSaving}
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Remove
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

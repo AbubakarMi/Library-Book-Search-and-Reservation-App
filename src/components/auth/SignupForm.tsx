@@ -18,10 +18,10 @@ import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Loader2, Upload, User } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Loader2 } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { validateRegistrationNumber, getDepartmentFromRegNo, getDepartmentOptions } from "@/lib/registration-utils";
-import { validateImageFile, compressImage, getInitials, getAvatarColor } from "@/lib/avatar-utils";
+import { getInitials, getAvatarColor } from "@/lib/avatar-utils";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -34,7 +34,6 @@ const formSchema = z.object({
     message: "Invalid registration number format. Use: UG20/COMS/1168"
   }),
   department: z.string().min(2, { message: "Department is required." }),
-  profilePicture: z.string().optional(),
 });
 
 // Get departments from the registration utils
@@ -44,9 +43,7 @@ export function SignupForm() {
   const { signup } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [imageLoading, setImageLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
 
   // Auto-detect department when registration number changes
   const handleRegistrationNumberChange = (regNo: string) => {
@@ -64,88 +61,18 @@ export function SignupForm() {
       password: "",
       registrationNumber: "",
       department: "",
-      profilePicture: "",
     },
   });
-
-
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Reset input value to allow selecting the same file again
-    event.target.value = '';
-
-    // Validate file using our utility
-    const validation = validateImageFile(file);
-    if (!validation.isValid) {
-      setError(validation.error || 'Invalid image file');
-      return;
-    }
-
-    setImageLoading(true);
-    setError(null);
-
-    try {
-      // Detect if we're on mobile for better compression
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      const maxSize = isMobile ? 300 : 500; // Smaller size for mobile devices
-
-      console.log('Processing image on mobile:', isMobile, 'max size:', maxSize);
-
-      // Use the improved compression function from avatar-utils
-      const compressedImage = await compressImage(file, maxSize);
-      setProfileImagePreview(compressedImage);
-      form.setValue('profilePicture', compressedImage);
-
-      console.log('Image processed successfully');
-    } catch (error) {
-      console.error('Error processing image:', error);
-
-      // Fallback for mobile devices - just convert to base64 without compression
-      try {
-        console.log('Attempting fallback conversion...');
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          if (e.target?.result) {
-            const base64 = e.target.result as string;
-            setProfileImagePreview(base64);
-            form.setValue('profilePicture', base64);
-            console.log('Fallback conversion successful');
-          }
-        };
-        reader.onerror = () => {
-          setError('Failed to process image. Please try a smaller image or contact support.');
-        };
-        reader.readAsDataURL(file);
-      } catch (fallbackError) {
-        console.error('Fallback failed:', fallbackError);
-        setError('Failed to process image. Please try a smaller image or contact support.');
-      }
-    } finally {
-      setImageLoading(false);
-    }
-  };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
     setError(null);
     try {
-      console.log("Attempting signup with values:", {
-        name: values.name,
-        email: values.email,
-        registrationNumber: values.registrationNumber,
-        department: values.department,
-        hasProfilePicture: !!values.profilePicture
-      });
-
       await signup(values.email, values.password, values.name, {
         registrationNumber: values.registrationNumber,
         department: values.department,
-        profilePicture: values.profilePicture || undefined // Don't set default avatar
       });
 
-      console.log("Signup successful, redirecting to dashboard");
       router.push("/dashboard");
     } catch (err: any) {
       console.error("Signup error:", err);
@@ -163,62 +90,15 @@ export function SignupForm() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
-          {/* Profile Picture Upload */}
-          <FormField
-            control={form.control}
-            name="profilePicture"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Profile Picture</FormLabel>
-                <FormControl>
-                  <div className="flex flex-col items-center space-y-4">
-                    <Avatar className="w-20 h-20 sm:w-24 sm:h-24 border-2 border-gray-200 dark:border-gray-700">
-                      <AvatarImage src={profileImagePreview || undefined} />
-                      <AvatarFallback className={`text-white text-lg ${getAvatarColor(form.watch('name') || 'User')}`}>
-                        {getInitials(form.watch('name') || 'User')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="relative inline-block">
-                      <input
-                        type="file"
-                        accept="image/*,image/heic,image/heif"
-                        capture="environment"
-                        onChange={handleImageUpload}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                        style={{
-                          WebkitAppearance: 'none',
-                          appearance: 'none',
-                          fontSize: '16px' // Prevents zoom on iOS
-                        }}
-                        disabled={imageLoading}
-                        id="profile-picture-upload"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="flex items-center gap-2 h-12 px-6 text-sm font-medium min-w-[140px] relative z-0 touch-manipulation select-none"
-                        disabled={imageLoading}
-                        asChild
-                      >
-                        <label htmlFor="profile-picture-upload" className="cursor-pointer flex items-center gap-2">
-                          {imageLoading ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Upload className="w-4 h-4" />
-                          )}
-                          {imageLoading ? 'Processing...' : 'Upload Photo'}
-                        </label>
-                      </Button>
-                    </div>
-                    {profileImagePreview && (
-                      <p className="text-xs text-green-600 text-center">✓ Photo uploaded successfully</p>
-                    )}
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Profile Avatar Preview */}
+          <div className="flex flex-col items-center space-y-2">
+            <Avatar className="w-20 h-20 sm:w-24 sm:h-24 border-2 border-gray-200 dark:border-gray-700">
+              <AvatarFallback className={`text-white text-lg ${getAvatarColor(form.watch('name') || 'User')}`}>
+                {getInitials(form.watch('name') || 'User')}
+              </AvatarFallback>
+            </Avatar>
+            <p className="text-xs text-muted-foreground text-center">Your profile icon will be generated from your name</p>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
