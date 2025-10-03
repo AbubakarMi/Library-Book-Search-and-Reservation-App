@@ -65,7 +65,7 @@ export function SignupForm() {
       await signup(values.email, values.password, values.name, {
         registrationNumber: values.registrationNumber,
         department: values.department,
-      });
+      } as any);
 
       router.push("/dashboard");
     } catch (err: any) {

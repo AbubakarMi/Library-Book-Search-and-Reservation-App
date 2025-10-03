@@ -169,21 +169,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      // Create new user
+      // Create new user - build object carefully to avoid undefined values
       const userId = `student-${Date.now()}`;
-      const newUser = {
+
+      // Determine avatar URL, but never use undefined value
+      let avatarUrl = `https://i.pravatar.cc/150?u=${email}`;
+      if (studentInfo && 'profilePicture' in studentInfo && studentInfo.profilePicture && studentInfo.profilePicture.trim()) {
+        avatarUrl = studentInfo.profilePicture;
+      }
+
+      const newUser: Record<string, any> = {
         id: userId,
         name,
         email,
-        password: pass, // In production, hash this password
+        password: pass,
         role: "student",
-        avatarUrl: studentInfo?.profilePicture || `https://i.pravatar.cc/150?u=${email}`,
-        registrationNumber: studentInfo?.registrationNumber,
-        department: studentInfo?.department,
-        profilePicture: studentInfo?.profilePicture,
+        avatarUrl,
         isActive: true,
         createdAt: new Date()
       };
+
+      // Only add optional fields if they exist and have actual values
+      if (studentInfo) {
+        if (studentInfo.registrationNumber && studentInfo.registrationNumber.trim()) {
+          newUser.registrationNumber = studentInfo.registrationNumber;
+        }
+        if (studentInfo.department && studentInfo.department.trim()) {
+          newUser.department = studentInfo.department;
+        }
+      }
 
       // Validate document size (Firestore limit is 1MB)
       const documentSize = new Blob([JSON.stringify(newUser)]).size;
@@ -194,20 +208,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       console.log("Creating user document with ID:", userId);
+      console.log("User data to save:", JSON.stringify(newUser, null, 2));
+
+      // Save to Firestore
       await setDoc(doc(db, "users", userId), newUser);
 
       // Auto-login the new user
-      const loggedInUser: User = {
+      const loggedInUser: Record<string, any> = {
         id: userId,
         name,
         email,
         role: "student",
-        avatarUrl: studentInfo?.profilePicture || `https://i.pravatar.cc/150?u=${email}`,
-        registrationNumber: studentInfo?.registrationNumber,
-        department: studentInfo?.department,
-        profilePicture: studentInfo?.profilePicture,
+        avatarUrl,
         isActive: true
       };
+
+      // Only add optional fields if they have actual values
+      if (studentInfo?.registrationNumber && studentInfo.registrationNumber.trim()) {
+        loggedInUser.registrationNumber = studentInfo.registrationNumber;
+      }
+      if (studentInfo?.department && studentInfo.department.trim()) {
+        loggedInUser.department = studentInfo.department;
+      }
 
       console.log("Setting user in context and session storage");
       setUser(loggedInUser);
